@@ -5,7 +5,7 @@
 				<img src="/logo.png" alt="Logo" />
 				<span>{{ app.info.name }}</span>
 			</div>
-			<p class="desc">一款快速开发后台权限管理系统</p>
+			<p class="desc">构建QX射J特征信号知识图谱，为QX射D计数器研制提供基础数据</p>
 
 			<el-form label-position="top" class="form" :disabled="saving">
 				<el-form-item label="用户名">
@@ -181,7 +181,7 @@ async function toLogin() {
 				border-radius: 0;
 
 				&:-webkit-autofill {
-					box-shadow: 0 0 0px 1000px transparent inset !important;
+					box-shadow: 0 0 0 1000px transparent inset !important;
 					transition: background-color 50000s ease-in-out 0s;
 				}
 

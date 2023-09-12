@@ -1,7 +1,7 @@
 <template>
 	<div class="app-slider">
 		<div class="app-slider__logo" @click="toHome">
-			<img src="/logo.png" />
+			<img src="/logo.png" alt="logo" />
 			<span v-if="!app.isFold || browser.isMini">{{ app.info.name }}</span>
 		</div>
 
@@ -20,7 +20,7 @@ const { browser } = useBrowser();
 const { app } = useBase();
 
 function toHome() {
-	location.href = "https://cool-js.com";
+	location.href = "#";
 }
 </script>
 
