@@ -654,9 +654,17 @@ declare namespace Eps {
 		 */
 		createUserId?: number;
 		/**
+		 * 创建者ID
+		 */
+		updateUserId?: number;
+		/**
 		 * 逻辑删除标记：0-正常，1-删除
 		 */
 		deleted?: number;
+		/**
+		 * 示波器csv数据
+		 */
+		data?: json;
 		/**
 		 * 创建时间
 		 */
@@ -757,13 +765,29 @@ declare namespace Eps {
 		 */
 		remark7?: string;
 		/**
-		 * 附件ID
+		 * 示波器文件ID
 		 */
 		attachmentId?: number;
+		/**
+		 * 示波器文件名称
+		 */
+		attachmentName?: string;
+		/**
+		 * 示波器文件可访问地址
+		 */
+		attachmentPath?: string;
 		/**
 		 * 示波器csv数据
 		 */
 		data?: json;
+		/**
+		 * 创建者ID
+		 */
+		createUserId?: number;
+		/**
+		 * 创建者ID
+		 */
+		updateUserId?: number;
 		/**
 		 * 创建时间
 		 */

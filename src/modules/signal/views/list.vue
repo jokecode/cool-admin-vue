@@ -4,8 +4,9 @@
 			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" reset-btn></cl-filter-group>
 		</cl-row>
 		<cl-row>
+			<!--<el-button @click="collapseAndUnfold">收起{{isCollapse}}{{ isCollapse ? '展开' : '收起' }}</el-button>-->
 			<!-- 新增按钮 -->
-			<cl-add-btn />
+			<cl-add-btn/>
 			<!--&lt;!&ndash; 刷新按钮 &ndash;&gt;-->
 			<!--<cl-refresh-btn />-->
 			<!--&lt;!&ndash; 删除按钮 &ndash;&gt;-->
@@ -21,24 +22,47 @@
 			<!--<cl-flex1 />-->
 			<!--&lt;!&ndash; 关键字搜索 &ndash;&gt;-->
 			<!--<cl-search-key placeholder="搜索昵称、手机号" />-->
+			<cl-flex1/>
+			<!-- 自定义列 -->
+			<cl-column-custom :columns="Table?.columns || []"/>
 		</cl-row>
 
 		<cl-row>
 			<!-- 数据表格 -->
-			<cl-table ref="Table" height="calc(100vh - 430px)" />
+			<cl-table ref="Table" height="calc(100vh - 430px)"/>
 		</cl-row>
 
 		<cl-row>
-			<cl-flex1 />
+			<cl-flex1/>
 			<!-- 分页控件 -->
 			<cl-pagination />
 		</cl-row>
 
 		<!-- 新增、编辑 -->
 		<cl-upsert ref="Upsert">
-			<template #slot-test="{ scope }">
-				<!--<el-input :ref="setRefs('test')" v-model="scope.name" />-->
-				<el-button @click="test">测试{{scope.name}}</el-button>
+			<template #slot-el-upload="{ scope }">
+				<el-upload
+					ref="oscFileElUploadRef"
+					v-model:file-list="fileList"
+					:auto-upload="false"
+					:on-change="handleChange"
+					:on-preview="handlePreview"
+					:on-remove="handleRemove"
+					:before-remove="beforeRemove"
+					:limit="1"
+					:on-exceed="handleExceed"
+					:http-request="handleRequest"
+				>
+					<template #trigger>
+						<el-button type="primary" icon="el-icon-upload">上传示波器csv文件</el-button>
+					</template>
+
+					<template #tip>
+						<div class="el-upload__tip">
+							提示：文件大小限制10M，文件类型.csv
+						</div>
+					</template>
+				</el-upload>
 			</template>
 		</cl-upsert>
 	</cl-crud>
@@ -47,15 +71,38 @@
 <script lang="ts" name="signal-list" setup>
 import {useCrud, useTable, useUpsert} from "@cool-vue/crud";
 import {useCool} from "/@/cool";
-import {reactive, ref} from "vue";
+import {computed, onMounted, reactive, ref} from "vue";
 import {useDict} from "/$/dict";
 import dayjs from "dayjs";
-import {ElMessage} from "element-plus";
-import {Document} from "@element-plus/icons-vue";
-import Papa from "papaparse";
+import {ElMessage, ElMessageBox, UploadProps, UploadUserFile} from "element-plus";
+import type {UploadInstance} from 'element-plus'
+import {uuid} from "/@/cool/utils";
+import {useBase} from "/$/base";
 
-const { dict } = useDict();
-const { refs, setRefs, service } = useCool();
+const {user} = useBase();
+
+const {dict} = useDict();
+const {refs, setRefs, service} = useCool();
+
+// 示波器CSV el-upload 组件的Ref对象
+const oscFileElUploadRef = ref<UploadInstance>()
+
+// 存储新增/修改时上传的示波器文件对象
+const uploadFile = ref<any>()
+
+// 是否收起查询条件
+// let isCollapse = ref(false);
+
+const fileList = ref<UploadUserFile[]>([
+	// {
+	// 	name: 'element-plus-logo.svg',
+	// 	url: 'https://element-plus.org/images/element-plus-logo.svg',
+	// },
+	// {
+	// 	name: 'element-plus-logo2.svg',
+	// 	url: 'https://element-plus.org/images/element-plus-logo.svg',
+	// },
+])
 
 // 搜索条件默认值
 const formData = reactive({
@@ -101,6 +148,64 @@ const formData = reactive({
 	remark7: undefined,
 })
 
+// 选项，统一命名options，存放所有的下拉等其他选项列表数据
+const options = reactive({
+	// Q型
+	gunType: getDictListByCode("GunType"),
+	// Q编号
+	gunCode: getDictListByCode("GunCode"),
+	// Q寿命
+	gunLifespan: getDictListByCode("GunLifespan"),
+	// 外挂
+	externalPlugIn: getDictListByCode("ExternalPlugIn"),
+	// 信号源
+	signalSource: getDictListByCode("SignalSource"),
+	// 安装位置
+	installPosition: getDictListByCode("InstallPosition"),
+	// 安装方向
+	installDirection: getDictListByCode("InstallDirection"),
+	// 连接方式
+	connectionMethod: getDictListByCode("ConnectionMethod"),
+	// 动作
+	action: getDictListByCode("Action"),
+	// 孔径
+	aperture: getDictListByCode("Aperture"),
+	// 射弹数量
+	firedNumber: getDictListByCode("FiredNumber"),
+	// 备注1
+	remark1: getDictListByCode("Remark1"),
+	// 备注2
+	remark2: getDictListByCode("Remark2"),
+	// 备注3
+	remark3: getDictListByCode("Remark3"),
+	// 备注4
+	remark4: getDictListByCode("Remark4"),
+	// 备注5
+	remark5: getDictListByCode("Remark5"),
+	// 备注6
+	remark6: getDictListByCode("Remark6"),
+	// 备注7
+	remark7: getDictListByCode("Remark7"),
+});
+
+function getDictListByCode(dictCode: string) {
+	return dict.get(dictCode).value.sort((a, b) => {
+		return a.orderNum - b.orderNum
+	})
+}
+
+function formatterCellByCode(row: any, column: any, val: any, dictCode: string) {
+	const list = options[dictCode] || [];
+
+	for (let i = 0; i < list.length; i++) {
+		const item = list[i];
+		if (item.value == val) {
+			return item?.label;
+		}
+	}
+	return val;
+}
+
 // 筛选组件
 const items = ref<ClForm.Item[]>([
 	{
@@ -129,27 +234,9 @@ const items = ref<ClForm.Item[]>([
 			name: "el-select",
 			props: {
 				clearable: true,
-				filterable: true,
-				// onChange(gunType) {
-				// 	console.log('======>', gunType)
-				// 	Crud.value?.refresh({ gunType, page: 1 });
-				// }
-				// onChange(gunType) {
-				// 	console.log('===>', gunType)
-				// 	console.log('Form.value===>', Form.value)
-				// 	if (gunType === '') {
-				// 		gunType = undefined
-				// 	}
-				// }
-				// on: {
-				// 	clear: (a: any, b: any, c: any) => {
-				// 		console.log('=====>', a, b, c)
-				// 	}
-				// }
+				filterable: true
 			},
-			options: dict.get("GunType").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.gunType
 		},
 		props: {
 			labelWidth: '100px'
@@ -165,9 +252,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("GunCode").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.gunCode
 		},
 		props: {
 			labelWidth: '100px'
@@ -183,9 +268,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("GunLifespan").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.gunLifespan
 		},
 		props: {
 			labelWidth: '100px'
@@ -201,9 +284,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("ExternalPlugIn").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.externalPlugIn
 		},
 		props: {
 			labelWidth: '100px'
@@ -219,9 +300,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("SignalSource").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.signalSource
 		},
 		props: {
 			labelWidth: '100px'
@@ -237,9 +316,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("InstallPosition").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.installPosition
 		},
 		props: {
 			labelWidth: '100px'
@@ -255,9 +332,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("InstallDirection").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.installDirection
 		},
 		props: {
 			labelWidth: '100px'
@@ -273,9 +348,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("ConnectionMethod").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.connectionMethod
 		},
 		props: {
 			labelWidth: '100px'
@@ -291,9 +364,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Action").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.action
 		},
 		props: {
 			labelWidth: '100px'
@@ -309,9 +380,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Aperture").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.aperture
 		},
 		props: {
 			labelWidth: '100px'
@@ -327,9 +396,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("FiredNumber").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.firedNumber
 		},
 		props: {
 			labelWidth: '100px'
@@ -360,9 +427,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark1").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark1
 		},
 		props: {
 			labelWidth: '100px'
@@ -378,9 +443,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark2").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark2
 		},
 		props: {
 			labelWidth: '100px'
@@ -396,9 +459,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark3").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark3
 		},
 		props: {
 			labelWidth: '100px'
@@ -414,9 +475,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark4").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark4
 		},
 		props: {
 			labelWidth: '100px'
@@ -432,9 +491,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark5").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark5
 		},
 		props: {
 			labelWidth: '100px'
@@ -450,9 +507,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark6").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark6
 		},
 		props: {
 			labelWidth: '100px'
@@ -468,9 +523,7 @@ const items = ref<ClForm.Item[]>([
 				clearable: true,
 				filterable: true
 			},
-			options: dict.get("Remark7").value.sort((a, b) => {
-				return a.orderNum - b.orderNum
-			})
+			options: options.remark7
 		},
 		props: {
 			labelWidth: '100px'
@@ -478,6 +531,29 @@ const items = ref<ClForm.Item[]>([
 
 	},
 ]);
+
+// function collapseAndUnfold() {
+// 	console.log('collapseAndUnfold', '======')
+// 	const collapseCol = ['remark1', 'remark2', 'remark3', 'remark4', 'remark5', 'remark6', 'remark7']
+//     if (isCollapse.value) {
+//         items.value.forEach(ele => {
+// 			console.log('true ========>', ele)
+// 			if (collapseCol.includes(ele.prop || '')) {
+// 				ele['hidden'] = true
+// 			}
+// 		})
+// 		console.log('true items.value=========>', items.value)
+// 	} else {
+//         items.value.forEach(ele => {
+// 			console.log('false ========>', ele)
+//             if (collapseCol.includes(ele.prop || '')) {
+// 				ele['hidden'] = false
+//             }
+//         })
+// 		console.log('false items.value=========>', items.value)
+// 	}
+//     isCollapse.value = !isCollapse.value
+// }
 
 // cl-table
 const Table = useTable({
@@ -487,6 +563,11 @@ const Table = useTable({
 			width: 60
 		},
 		{
+			type: "index",
+			label: "序号",
+			width: 55
+		},
+		{
 			label: "文件编号",
 			prop: "fileCode",
 			minWidth: 150
@@ -494,73 +575,100 @@ const Table = useTable({
 		{
 			label: "Q型",
 			prop: "gunType",
-			dict: dict.get("GunType"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'gunType')
+			},
+			// dict: dict.get("GunType"),
 			minWidth: 180
 		},
 		{
 			label: "Q编号",
 			prop: "gunCode",
-			dict: dict.get("GunCode"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'gunCode')
+			},
+			// dict: dict.get("GunCode"),
 			minWidth: 100
 		},
 		{
 			label: "Q寿命",
 			prop: "gunLifespan",
-			dict: dict.get("GunLifespan"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'gunLifespan')
+			},
+			// dict: dict.get("GunLifespan"),
 			minWidth: 100
 		},
 		{
 			label: "外挂",
 			prop: "externalPlugIn",
-			dict: dict.get("ExternalPlugIn"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'externalPlugIn')
+			},
+			// dict: dict.get("ExternalPlugIn"),
 			minWidth: 100
 		},
 		{
 			label: "信号源",
 			prop: "signalSource",
-			dict: dict.get("SignalSource"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'signalSource')
+			},
+			// dict: dict.get("SignalSource"),
 			minWidth: 150
 		},
 		{
 			label: "安装位置",
 			prop: "installPosition",
-			dict: dict.get("InstallPosition"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'installPosition')
+			},
+			// dict: dict.get("InstallPosition"),
 			minWidth: 120
 		},
 		{
 			label: "安装方向",
 			prop: "installDirection",
-			dict: dict.get("InstallDirection"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'installDirection')
+			},
+			// dict: dict.get("InstallDirection"),
 			minWidth: 120
 		},
 		{
 			label: "连接方式",
 			prop: "connectionMethod",
-			dict: dict.get("ConnectionMethod"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'connectionMethod')
+			},
+			// dict: dict.get("ConnectionMethod"),
 			minWidth: 100
 		},
 		{
 			label: "动作",
 			prop: "action",
-			dict: dict.get("Action"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'action')
+			},
+			// dict: dict.get("Action"),
 			minWidth: 150
 		},
 		{
 			label: "孔径",
 			prop: "aperture",
-			dict: dict.get("Aperture"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'aperture')
+			},
+			// dict: dict.get("Aperture"),
 			minWidth: 100
 		},
 		{
 			label: "射弹数量",
 			prop: "firedNumber",
 			formatter: (row, column, val) => {
-				const result = dict.get("FiredNumber").value.find((element) => {
-					// 不能使用 ===, 存在 30 和 '30' 这种情况
-					return element.value == val
-				})
-				return result?.label
+				return formatterCellByCode(row, column, val, 'firedNumber')
 			},
+			// dict: dict.get("FiredNumber"),
 			// dict: {
 			// 	text: true,
 			// 	options: dict.get("FiredNumber").value
@@ -577,7 +685,10 @@ const Table = useTable({
 		{
 			label: "备注1",
 			prop: "remark1",
-			dict: dict.get("Remark1"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark1')
+			},
+			// dict: dict.get("Remark1"),
 			minWidth: 120
 		},
 
@@ -585,37 +696,55 @@ const Table = useTable({
 		{
 			label: "备注2",
 			prop: "remark2",
-			dict: dict.get("Remark2"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark2')
+			},
+			// dict: dict.get("Remark2"),
 			minWidth: 120
 		},
 		{
 			label: "备注3",
 			prop: "remark3",
-			dict: dict.get("Remark3"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark3')
+			},
+			// dict: dict.get("Remark3"),
 			minWidth: 120
 		},
 		{
 			label: "备注4",
 			prop: "remark4",
-			dict: dict.get("Remark4"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark4')
+			},
+			// dict: dict.get("Remark4"),
 			minWidth: 120
 		},
 		{
 			label: "备注5",
 			prop: "remark5",
-			dict: dict.get("Remark5"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark5')
+			},
+			// dict: dict.get("Remark5"),
 			minWidth: 120
 		},
 		{
 			label: "备注6",
 			prop: "remark6",
-			dict: dict.get("Remark6"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark6')
+			},
+			// dict: dict.get("Remark6"),
 			minWidth: 120
 		},
 		{
 			label: "备注7",
 			prop: "remark7",
-			dict: dict.get("Remark7"),
+			formatter: (row, column, val) => {
+				return formatterCellByCode(row, column, val, 'remark7')
+			},
+			// dict: dict.get("Remark7"),
 			minWidth: 120
 		},
 		{
@@ -638,30 +767,42 @@ const Table = useTable({
 	]
 });
 
+let uploadSuccessSaveData: any;
+
+
+// 计算属性（dialog的add update info模式）
+const dlgMode = computed(() => {
+	return Upsert.value?.mode
+})
+
 // cl-upsert
 const Upsert = useUpsert({
 	dialog: {
 		width: "720px",
-		top: 'calc((100vh - 740px) / 2)'
+		top: 'calc((100vh - 820px) / 2)'
 	},
 	items: [
-		{
-			label: "文件编号",
-			prop: "fileCode",
-			value: dayjs().format("YYMMDD") + '0001',
-			required: true,
-			span: 12,
-			component: {
-				name: "el-input",
+		() => {
+			return {
+				label: "文件编号",
+				prop: "fileCode",
+				value: dayjs().format("YYMMDD") + '0001',
+				required: true,
+				span: 12,
+				component: {
+					name: "el-input",
+					props: {
+						clearable: false,
+						'suffix-icon': "el-question-filled",
+						disabled: Upsert.value?.mode === 'update'
+						// ['update', 'info'].includes(Upsert.value?.mode || '')
+					}
+				},
 				props: {
-					clearable: false,
-					'suffix-icon': "el-question-filled"
+					labelWidth: '100px'
 				}
-			},
-			props: {
-				labelWidth: '100px'
-			}
 
+			}
 		},
 		{
 			label: "Q型",
@@ -1105,94 +1246,234 @@ const Upsert = useUpsert({
 			}
 
 		},
+		// 示波器csv文件，转为json后存储在data字段中
 		{
-			prop: "csvFile",
-			label: "信号特征数据",
+			prop: "testElUpload",
+			label: "信号特征数据", // 示波器csv文件，转为json后存储在data字段中
 			component: {
-				name: "cl-upload",
-				props: {
-					icon: Document,
-					type: "file",
-					accept: "text/csv",
-					limit: 1,
-					limitSize: 10,
-					customClass: "upload-oscilloscope-file",
-					ref: setRefs('uploadOscilloscopeFileRef'),
-					beforeUpload: (file: any, item: any) => {
-						console.log('文件上传前校验===>', file, item)
-						ElMessage.warning("文件检测中");
-						Upsert.value?.showLoading()
-						return csvFileToJson(file)
-					},
-				}
+				name: "slot-el-upload",
 			}
 		},
 		{
 			prop: "data",
-			label: "", // 示波器csv文件，转为json后存储在data字段中
+			label: "示波器数据",
 			hidden: true
 		},
+		// 示波器csv文件，在数据库中的文件id
 		{
-			prop: "test",
-			label: "测试", // 示波器csv文件，转为json后存储在data字段中
-			component: {
-				name: "slot-test",
-				// name: "el-button",
-				// vm: "el-button"
-			}
-		}
+			prop: "attachmentId",
+			label: "CSV文件ID",
+			hidden: true
+		},
+		// 示波器csv文件的原始名称
+		{
+			prop: "attachmentName",
+			label: "",
+			hidden: true
+		},
+		// 示波器csv文件的下载url
+		{
+			prop: "attachmentPath",
+			label: "CSV文件URL",
+			hidden: true
+		},
+		// 示波器csv文件
+		{
+			prop: "uploadFile",
+			label: "示波器csv文件",
+			hidden: true
+		},
 	],
-	async onSubmit(data, { done, close, next }) {
-		console.log('提交的数据===>', data)
-		console.log('提交的回调===>', done, close, next)
+	async onSubmit(data, {done, close}) {
+		const fd = new FormData();
+		// 信号特征 数据
+		for (const i in data) {
+			data[i] && fd.append(i, data[i]); // undefined、null和''值不传给后端
+		}
+		if (uploadFile.value && uploadFile.value.raw) {
+			// 文件名
+			const fileName = uuid("") + "_" + uploadFile.value.raw.name
+			// 文件大小
+			fd.append("fileSize", uploadFile.value.raw.size);
+			// 文件名
+			fd.append("key", fileName);
+			// 文件
+			fd.append('file', uploadFile.value.raw, uploadFile.value.raw.name)
+		}
 
-		setTimeout(() => {
-			next({
-				...data,
-				data: Upsert.value?.form.data
-			});
-			console.log('Upsert=========>', Upsert)
-		}, 3000)
-
-		// done 关闭加载状态
-		// close 关闭弹窗
+		const mode = Upsert.value?.mode
+		// 判断新增还是修改
+		if (mode === 'add') {
+			// 自定义发送请求
+			service.signal.feature.request({
+				url: "/add",
+				// headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				headers: {'Content-Type': 'multipart/form-data'},
+				method: "POST",
+				data: fd,
+			}).then(res => {
+				console.log('add res ===>', res)
+				ElMessage.success('新增成功！');
+				// 操作完，刷新列表
+				refresh();
+				done(); // 关闭加载状态
+				close(); // 关闭弹窗
+			}).catch(err => {
+				console.error('add res ===>', err)
+				ElMessage.error(err.message);
+				done();
+			})
+		} else if (mode === 'update') {
+			service.signal.feature.request({
+				url: "/update",
+				// headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				headers: {'Content-Type': 'multipart/form-data'},
+				method: "POST",
+				data: fd,
+			}).then(res => {
+				console.log('update res ===>', res)
+				ElMessage.success('修改成功');
+				// 操作完，刷新列表
+				refresh();
+				done(); // 关闭加载状态
+				close(); // 关闭弹窗
+			}).catch(err => {
+				console.error('update res ===>', err)
+				ElMessage.error(err.message);
+				done();
+			})
+			// service.signal.feature.update().then(res => {
+			// 	console.log('update res ===>', res)
+			// 	done(); // 关闭加载状态
+			// 	close(); // 关闭弹窗
+			// }).then(res => {
+			// 	console.error('add res ===>', res)
+			// 	done();
+			// })
+		}
+	},
+	onOpen(data) {
+		console.log('data======>', data);
+		if (data.id) {
+			fileList.value = [
+				{
+					name: data.attachmentName,
+					url: data.attachmentPath,
+				}
+			]
+		} else {
+			fileList.value = []
+		}
+		console.log('fileList.value====>', fileList.value)
 	}
 });
 
-function csvFileToJson(file: any) {
-	const papaparseConfig = {
-		delimiter: ":",
-		header: false,
-		dynamicTyping: false,
-		skipEmptyLines: false,
-		preview: 0,
-		encoding: "",
-		worker: false,
-		comments: "",
-		download: false,
-		complete: (res: any) => {
-			// UTF8 \r\n与\n混用时有可能会出问题
-			let data = res.data;
-			if (data[data.length - 1] == "") {
-				//去除最后的空行
-				data.pop();
-			}
-			console.log('data就是文件里面的数据====>', data);  // data就是文件里面的数据
-			Upsert.value?.setForm('data', data)
-			Upsert.value?.setData('data', data)
-			Upsert.value?.hideLoading()
-			console.log('data json是否存储成功=======>', Upsert.value?.form)
-			return new Promise((resolve) => {
-				ElMessage.success("示波器csv文件转为json完成！");
-				resolve(true);
-			});
-		}
+
+const handleChange: UploadProps['onChange'] = (file, uploadFiles) => {
+	console.log('handleChange', file, uploadFiles);
+	if (file.status === 'ready') {
+		uploadFile.value = file;
 	}
-	Papa.parse(file, papaparseConfig);
 }
 
-function test() {
-	console.log('uploadOscilloscopeFileRef===========>', refs.uploadOscilloscopeFileRef)
+const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
+	Upsert.value?.showLoading();
+	console.log('handleRemove', file, uploadFiles);
+	Upsert.value?.setForm('data', '')
+	Upsert.value?.setData('data', '')
+	Upsert.value?.hideLoading();
+}
+
+const handlePreview: UploadProps['onPreview'] = (uploadFile) => {
+	console.log('handlePreview', uploadFile);
+	if (['info', 'update'].includes(dlgMode.value || '')) {
+		const url = uploadFile?.url
+		const link = document.createElement("a");
+		link.setAttribute("href", url || "#");
+		// let fileName = url?.split('/').pop();
+		// let temp = fileName?.split('.')
+		// temp?.pop();
+		// let downloadName = temp?.join('.')
+		// 注意：只有 Firefox 和 Chrome 支持 download 属性。href的属性地址必须是和你前端同源情况下download才会起作用，如果涉及跨域情况下，download将不会起作用
+		// TODO: 如果涉及跨域问题，可以采用axios获取文件流下载文件
+		// Axios.get(url,{responseType:'blob'}).then(res=>{
+		// 	const blob = new Blob([res.data])
+		// 	let a = document.createElement('a')
+		// 	a.href=URL.createObjectURL(blob)
+		// 	a.download = fileName
+		// 	a.click()
+		// })
+		// link.setAttribute("download", downloadName?.split('_').pop() || "");
+		link.setAttribute("download", "");
+		link.click();
+	}
+}
+
+const handleExceed: UploadProps['onExceed'] = (files, uploadFiles) => {
+	ElMessage.warning(`最多只能上传 ${files.length} 个csv文件, 但是你上传了 ${files.length + uploadFiles.length} 个文件`)
+}
+
+const beforeRemove: UploadProps['beforeRemove'] = (uploadFile, uploadFiles) => {
+	console.log('beforeRemove =====>', uploadFile, uploadFiles)
+	return ElMessageBox.confirm(
+		`取消上传文件： ${uploadFile.name} ?`
+	).then(
+		() => true,
+		() => false
+	)
+}
+
+// 文件上传请求
+const handleRequest: UploadProps['httpRequest'] = async (req: any, item?: any) => {
+	try {
+		// 文件id
+		const fileId = uuid("");
+		// 文件名
+		let fileName = fileId + "_" + req.file.name;
+
+		const fd = new FormData();
+		// 文件名
+		fd.append("key", fileName);
+		// 文件
+		fd.append("file", req.file);
+
+		// 上传
+		await service
+			.request({
+				// url: "/admin/base/comm/upload",
+				url: "/admin/base/comm/uploadOscCsv",
+				method: "POST",
+				headers: {
+					"Authorization": user.token,
+					"Content-Type": "multipart/form-data"
+				},
+				timeout: 600000,
+				data: fd,
+				// onUploadProgress(e: { loaded: number; total: number }) {
+				// 	item.progress = parseInt(String((e.loaded / e.total) * 100));
+				// 	emit("progress", item);
+				// },
+				proxy: true
+			})
+			.then((res) => {
+				console.log('service.request then res====>', res)
+				const attachmentId = res?.id;
+				Upsert.value?.setForm('attachmentId', attachmentId);
+				Upsert.value?.setData('attachmentId', attachmentId);
+				uploadSuccessSaveData().then(() => {
+					Upsert.value?.hideLoading();
+				}).catch(() => {
+					Upsert.value?.hideLoading();
+				})
+			})
+			.catch((err) => {
+				ElMessage.error(`文件上传失败：${err.message}`);
+				item.error = err.message;
+			});
+	} catch (e) {
+		console.log('上传示波器csv失败：', e)
+		ElMessage.error('上传配置错误')
+	}
 }
 
 // cl-crud
@@ -1204,6 +1485,11 @@ const Crud = useCrud(
 		app.refresh();
 	}
 );
+
+// 刷新列表，统一调用这个方法去刷新
+function refresh(params?: any) {
+	Crud.value?.refresh(params);
+}
 </script>
 
 <style lang="scss" scoped>
@@ -1219,18 +1505,18 @@ const Crud = useCrud(
 
 <style lang="scss">
 /*  自定义上传示波器文件控件的样式  */
-.upload-oscilloscope-file>.cl-upload--file>.cl-upload__list {
+.upload-oscilloscope-file > .cl-upload--file > .cl-upload__list {
 	height: 32px;
 
-	>.is-drag {
+	> .is-drag {
 		height: 32px;
-		width:100%;
+		width: 100%;
 
-		>.el-upload--text {
+		> .el-upload--text {
 			height: 32px;
 			width: 100%;
 
-			>.cl-upload__item {
+			> .cl-upload__item {
 				height: 32px;
 				width: 100%;
 
