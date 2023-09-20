@@ -23,6 +23,10 @@
 			<!--&lt;!&ndash; 关键字搜索 &ndash;&gt;-->
 			<!--<cl-search-key placeholder="搜索昵称、手机号" />-->
 			<cl-flex1/>
+			<!-- 图像对比 -->
+			<el-button v-permission="service.signal.feature.imageComparison" type="primary" @click="imageComparison">图像对比</el-button>
+			<!-- 示波器导入模板下载 -->
+			<el-button v-permission="service.signal.feature.downloadTemplate" type="success" @click="downloadTemplate">示波器导入模板下载</el-button>
 			<!-- 自定义列 -->
 			<cl-column-custom :columns="Table?.columns || []"/>
 		</cl-row>
@@ -71,7 +75,7 @@
 <script lang="ts" name="signal-list" setup>
 import {useCrud, useTable, useUpsert} from "@cool-vue/crud";
 import {useCool} from "/@/cool";
-import {computed, onMounted, reactive, ref} from "vue";
+import {computed, reactive, ref} from "vue";
 import {useDict} from "/$/dict";
 import dayjs from "dayjs";
 import {ElMessage, ElMessageBox, UploadProps, UploadUserFile} from "element-plus";
@@ -1489,6 +1493,25 @@ const Crud = useCrud(
 // 刷新列表，统一调用这个方法去刷新
 function refresh(params?: any) {
 	Crud.value?.refresh(params);
+}
+
+// 图像对比
+function imageComparison() {
+
+}
+
+// 示波器导入模板下载
+function downloadTemplate() {
+	service.signal.feature.downloadTemplate()
+	service.signal.feature.downloadTemplate().then(res => {
+		const link = document.createElement("a");
+		link.setAttribute("href", res || "#");
+		link.setAttribute("download", "");
+		link.click();
+		ElMessage.success('模板下载成功！');
+	}).catch(err => {
+		ElMessage.error(err.message);
+	})
 }
 </script>
 
