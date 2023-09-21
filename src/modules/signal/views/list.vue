@@ -1,5 +1,5 @@
 <template>
-	<cl-crud ref="Crud">
+	<cl-crud v-show="!isFullScreen" ref="Crud">
 		<cl-row>
 			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" reset-btn></cl-filter-group>
 		</cl-row>
@@ -41,7 +41,6 @@
 			<!-- 分页控件 -->
 			<cl-pagination />
 		</cl-row>
-
 		<!-- 新增、编辑 -->
 		<cl-upsert ref="Upsert">
 			<template #slot-el-upload="{ scope }">
@@ -70,6 +69,17 @@
 			</template>
 		</cl-upsert>
 	</cl-crud>
+
+	<!-- 信号特征详情 -->
+	<full-screen
+		v-if="isFullScreen"
+		:show-full-screen="isFullScreen"
+		:back-page="() => { isFullScreen = false }"
+		full-screen-name="查看信号特征详情"
+		style="background-color: white;height: calc(100vh - 111px);"
+	>
+		<detail :detail-data="detailData"></detail>
+	</full-screen>
 </template>
 
 <script lang="ts" name="signal-list" setup>
@@ -82,11 +92,16 @@ import {ElMessage, ElMessageBox, UploadProps, UploadUserFile} from "element-plus
 import type {UploadInstance} from 'element-plus'
 import {uuid} from "/@/cool/utils";
 import {useBase} from "/$/base";
-
+import Detail from "/@/modules/signal/views/detail.vue";
+import FullScreen from "/$/components/full-screen/index.vue";
+import {features} from "monaco-editor/esm/metadata";
 const {user} = useBase();
 
 const {dict} = useDict();
 const {refs, setRefs, service} = useCool();
+
+const isFullScreen = ref(false)
+const detailData = reactive({})
 
 // 示波器CSV el-upload 组件的Ref对象
 const oscFileElUploadRef = ref<UploadInstance>()
@@ -564,17 +579,20 @@ const Table = useTable({
 	columns: [
 		{
 			type: "selection",
-			width: 60
+			width: 60,
+			fixed: "left"
 		},
 		{
 			type: "index",
 			label: "序号",
-			width: 55
+			width: 55,
+			fixed: "left"
 		},
 		{
 			label: "文件编号",
 			prop: "fileCode",
-			minWidth: 150
+			minWidth: 150,
+			fixed: "left"
 		},
 		{
 			label: "Q型",
@@ -766,7 +784,28 @@ const Table = useTable({
 			label: "操作",
 			type: "op",
 			width: 230,
-			buttons: ["info", "edit", "delete"]
+			buttons: [{
+				label: "详情",
+				type: "success",
+				onClick({ scope }) {
+					// scope行数据
+					console.log('scope行数据', scope)
+					service.signal.feature.info({ id: scope.row.id }).then(res => {
+						isFullScreen.value = true
+						const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
+						console.log(res)
+						for (const key in res) {
+							if (formatterProps.includes(key)) {
+								detailData[key] = formatterCellByCode(null, null, res[key], key);
+							} else {
+								detailData[key] = scope.row[key];
+							}
+						}
+					}).catch(err => {
+						ElMessage.error(err.message);
+					})
+				}
+			}, "edit", "delete"]
 		}
 	]
 });
