@@ -6,7 +6,7 @@ import { endsWith } from "lodash-es";
 import { isDev, config } from "/@/cool";
 import { storage } from "/@/cool/utils";
 import { useBase } from "/$/base";
-import { router } from "../router";
+import { router } from "/@/cool";
 
 const request = axios.create({
 	timeout: 30000,
@@ -37,7 +37,13 @@ request.interceptors.request.use(
 
 		// 请求信息
 		if (isDev) {
+			const requestStartTime = new Date().getTime()
+			// 增加请求头，用于计算请求耗时
+			req.headers['request-start-time'] = requestStartTime
+			console.log('')
+			console.log('%c 请求：', 'color: #20b2aa;font-weight: bold;')
 			console.group(req.url);
+			console.time(`${requestStartTime.toString()} 耗时`)
 			console.log("method:", req.method);
 			console.table("data:", req.method == "get" ? req.params : req.data);
 			console.groupEnd();
@@ -115,6 +121,15 @@ request.interceptors.response.use(
 
 		switch (code) {
 			case 1000:
+				if (isDev) {
+					const requestStartTime = res.config.headers['request-start-time']
+					console.log('')
+					console.log('%c 响应：', 'color: #20b2aa;font-weight: bold;')
+					console.group(res.config.url);
+					console.log("data:", res.data);
+					console.timeEnd(`${requestStartTime.toString()} 耗时`)
+					console.groupEnd();
+				}
 				return data;
 			default:
 				return Promise.reject({ code, message });
