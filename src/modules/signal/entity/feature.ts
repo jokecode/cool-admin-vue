@@ -1,4 +1,9 @@
-class Feature extends Base {
+class Base {
+  id: number | undefined;
+  createTime: string | undefined;
+  updateTime: string | undefined;
+}
+export class Feature extends Base {
 	fileCode: string | undefined;
 	gunType: string | number | undefined;
 	gunCode: string | number | undefined;

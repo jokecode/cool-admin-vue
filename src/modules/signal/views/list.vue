@@ -1,5 +1,5 @@
 <template>
-	<cl-crud v-show="!isFullScreen" ref="Crud">
+	<cl-crud v-show="!isFullScreen && !showImageComparison" ref="Crud">
 		<cl-row>
 			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" reset-btn></cl-filter-group>
 		</cl-row>
@@ -80,6 +80,17 @@
 	>
 		<detail :detail-data="detailData"></detail>
 	</full-screen>
+
+	<!-- 信号特征 图像对比 -->
+	<full-screen
+		v-if="showImageComparison"
+		:show-full-screen="showImageComparison"
+		:back-page="() => { showImageComparison = false }"
+		full-screen-name="信号特征对比"
+		style="background-color: white;height: calc(100vh - 111px);"
+	>
+		<comparison v-if="showImageComparison" :detail-data-list="detailDataList"></comparison>
+	</full-screen>
 </template>
 
 <script lang="ts" name="signal-list" setup>
@@ -93,8 +104,9 @@ import type {UploadInstance} from 'element-plus'
 import {uuid} from "/@/cool/utils";
 import {useBase} from "/$/base";
 import Detail from "/@/modules/signal/views/detail.vue";
+import Comparison from "/@/modules/signal/views/comparison.vue";
 import FullScreen from "/$/components/full-screen/index.vue";
-import {features} from "monaco-editor/esm/metadata";
+import {Feature} from "/$/signal/entity/feature";
 const {user} = useBase();
 
 const {dict} = useDict();
@@ -103,6 +115,8 @@ const {refs, setRefs, service} = useCool();
 const isFullScreen = ref(false)
 const detailData = reactive({})
 
+const showImageComparison = ref(false)
+const detailDataList = reactive<Feature[]>([])
 // 示波器CSV el-upload 组件的Ref对象
 const oscFileElUploadRef = ref<UploadInstance>()
 
@@ -789,16 +803,14 @@ const Table = useTable({
 				type: "success",
 				onClick({ scope }) {
 					// scope行数据
-					console.log('scope行数据', scope)
 					service.signal.feature.info({ id: scope.row.id }).then(res => {
 						isFullScreen.value = true
 						const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
-						console.log(res)
 						for (const key in res) {
 							if (formatterProps.includes(key)) {
 								detailData[key] = formatterCellByCode(null, null, res[key], key);
 							} else {
-								detailData[key] = scope.row[key];
+								detailData[key] = res[key];
 							}
 						}
 					}).catch(err => {
@@ -822,7 +834,7 @@ const dlgMode = computed(() => {
 const Upsert = useUpsert({
 	dialog: {
 		width: "720px",
-		top: 'calc((100vh - 820px) / 2)'
+		top: 'calc((100vh - 820px) / 2)',
 	},
 	items: [
 		() => {
@@ -1350,12 +1362,10 @@ const Upsert = useUpsert({
 			// 自定义发送请求
 			service.signal.feature.request({
 				url: "/add",
-				// headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
 				headers: {'Content-Type': 'multipart/form-data'},
 				method: "POST",
 				data: fd,
-			}).then(res => {
-				console.log('add res ===>', res)
+			}).then(() => {
 				ElMessage.success('新增成功！');
 				// 操作完，刷新列表
 				refresh();
@@ -1369,35 +1379,23 @@ const Upsert = useUpsert({
 		} else if (mode === 'update') {
 			service.signal.feature.request({
 				url: "/update",
-				// headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
 				headers: {'Content-Type': 'multipart/form-data'},
 				method: "POST",
 				data: fd,
-			}).then(res => {
-				console.log('update res ===>', res)
+			}).then(() => {
 				ElMessage.success('修改成功');
 				// 操作完，刷新列表
 				refresh();
 				done(); // 关闭加载状态
 				close(); // 关闭弹窗
 			}).catch(err => {
-				console.error('update res ===>', err)
 				ElMessage.error(err.message);
 				done();
 			})
-			// service.signal.feature.update().then(res => {
-			// 	console.log('update res ===>', res)
-			// 	done(); // 关闭加载状态
-			// 	close(); // 关闭弹窗
-			// }).then(res => {
-			// 	console.error('add res ===>', res)
-			// 	done();
-			// })
 		}
 	},
 	onOpen(data) {
-		console.log('data======>', data);
-		if (data.id) {
+		if (['info', 'update'].includes(Upsert.value?.mode || '')) {
 			fileList.value = [
 				{
 					name: data.attachmentName,
@@ -1407,7 +1405,6 @@ const Upsert = useUpsert({
 		} else {
 			fileList.value = []
 		}
-		console.log('fileList.value====>', fileList.value)
 	}
 });
 
@@ -1536,7 +1533,29 @@ function refresh(params?: any) {
 
 // 图像对比
 function imageComparison() {
-
+	const selection = Table.value?.getSelectionRows();
+	if (!selection || selection.length <= 0) {
+		ElMessage.warning('请勾选需要选择的数据！');
+		return false
+	}
+	// 需要formatter的字段
+	const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
+  detailDataList.length = 0
+	for (let i = 0; i < selection.length; i++) {
+		let item = selection[i];
+		const detailData: Feature = new Feature();
+		for (const key in item) {
+			if (formatterProps.includes(key)) {
+				detailData[key] = formatterCellByCode(null, null, item[key], key);
+			} else {
+				detailData[key] = item[key];
+			}
+		}
+    detailData['showChart'] = true;
+    detailData['chartLoading'] = false;
+    detailDataList.push(detailData);
+	}
+	showImageComparison.value = true
 }
 
 // 示波器导入模板下载

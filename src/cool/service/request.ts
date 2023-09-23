@@ -4,7 +4,7 @@ import "nprogress/nprogress.css";
 import { ElMessage } from "element-plus";
 import { endsWith } from "lodash-es";
 import { isDev, config } from "/@/cool";
-import { storage } from "/@/cool/utils";
+import {storage, uuid} from "/@/cool/utils";
 import { useBase } from "/$/base";
 import { router } from "/@/cool";
 
@@ -37,7 +37,7 @@ request.interceptors.request.use(
 
 		// 请求信息
 		if (isDev) {
-			const requestStartTime = new Date().getTime()
+			const requestStartTime = uuid()
 			// 增加请求头，用于计算请求耗时
 			req.headers['request-start-time'] = requestStartTime
 			console.log('')
