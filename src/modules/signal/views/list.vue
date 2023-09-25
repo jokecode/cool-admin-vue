@@ -24,9 +24,13 @@
 			<!--<cl-search-key placeholder="搜索昵称、手机号" />-->
 			<cl-flex1/>
 			<!-- 图像对比 -->
-			<el-button v-permission="service.signal.feature.imageComparison" type="primary" @click="imageComparison">图像对比</el-button>
+			<el-button v-permission="service.signal.feature.imageComparison" type="primary" @click="imageComparison">
+				图像对比
+			</el-button>
 			<!-- 示波器导入模板下载 -->
-			<el-button v-permission="service.signal.feature.downloadTemplate" type="success" @click="downloadTemplate">示波器导入模板下载</el-button>
+			<el-button v-permission="service.signal.feature.downloadTemplate" type="success" @click="downloadTemplate">
+				示波器导入模板下载
+			</el-button>
 			<!-- 自定义列 -->
 			<cl-column-custom :columns="Table?.columns || []"/>
 		</cl-row>
@@ -39,7 +43,7 @@
 		<cl-row>
 			<cl-flex1/>
 			<!-- 分页控件 -->
-			<cl-pagination />
+			<cl-pagination/>
 		</cl-row>
 		<!-- 新增、编辑 -->
 		<cl-upsert ref="Upsert">
@@ -107,6 +111,7 @@ import Detail from "/@/modules/signal/views/detail.vue";
 import Comparison from "/@/modules/signal/views/comparison.vue";
 import FullScreen from "/$/components/full-screen/index.vue";
 import {Feature} from "/$/signal/entity/feature";
+
 const {user} = useBase();
 
 const {dict} = useDict();
@@ -801,9 +806,9 @@ const Table = useTable({
 			buttons: [{
 				label: "详情",
 				type: "success",
-				onClick({ scope }) {
+				onClick({scope}) {
 					// scope行数据
-					service.signal.feature.info({ id: scope.row.id }).then(res => {
+					service.signal.feature.info({id: scope.row.id}).then(res => {
 						isFullScreen.value = true
 						const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
 						for (const key in res) {
@@ -1540,7 +1545,7 @@ function imageComparison() {
 	}
 	// 需要formatter的字段
 	const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
-  detailDataList.length = 0
+	detailDataList.length = 0
 	for (let i = 0; i < selection.length; i++) {
 		let item = selection[i];
 		const detailData: Feature = new Feature();
@@ -1551,9 +1556,9 @@ function imageComparison() {
 				detailData[key] = item[key];
 			}
 		}
-    detailData['showChart'] = true;
-    detailData['chartLoading'] = false;
-    detailDataList.push(detailData);
+		detailData['showChart'] = true;
+		detailData['chartLoading'] = false;
+		detailDataList.push(detailData);
 	}
 	showImageComparison.value = true
 }

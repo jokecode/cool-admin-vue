@@ -9,34 +9,36 @@ const {service} = useCool();
 const props = defineProps({
 	detailData: {
 		type: Object,
-		default: () => { return {} }
+		default: () => {
+			return {}
+		}
 	},
 });
 
 const detailProps = reactive([
-	{ prop: 'fileCode', label: '文件编号', span: 8 },
-	{ prop: 'gunType', label: 'Q型', span: 8 },
-	{ prop: 'gunCode', label: 'Q编号', span: 8 },
-	{ prop: 'gunLifespan', label: 'Q寿命', span: 8 },
-	{ prop: 'externalPlugIn', label: '外挂', span: 8 },
-	{ prop: 'signalSource', label: '信号源', span: 8 },
-	{ prop: 'installPosition', label: '安装位置', span: 8 },
-	{ prop: 'installDirection', label: '安装方向', span: 8 },
-	{ prop: 'connectionMethod', label: '连接方式', span: 8 },
-	{ prop: 'action', label: '动作', span: 8 },
-	{ prop: 'aperture', label: '孔径', span: 8 },
-	{ prop: 'firedNumber', label: '射弹数量', span: 8 },
-	{ prop: 'remark', label: '备注', span: 8 },
-	{ prop: 'remark1', label: '备注1', span: 8 },
-	{ prop: 'remark2', label: '备注2', span: 8 },
-	{ prop: 'remark3', label: '备注3', span: 8 },
-	{ prop: 'remark4', label: '备注4', span: 8 },
-	{ prop: 'remark5', label: '备注5', span: 8 },
-	{ prop: 'remark6', label: '备注6', span: 8 },
-	{ prop: 'remark7', label: '备注7', span: 8 },
-	{ prop: 'createTime', label: '创建时间', span: 8 },
-	{ prop: 'updateTime', label: '更新时间', span: 8 },
-	{ prop: 'attachmentPath', label: '信号特征数据', span: 16 },
+	{prop: 'fileCode', label: '文件编号', span: 8},
+	{prop: 'gunType', label: 'Q型', span: 8},
+	{prop: 'gunCode', label: 'Q编号', span: 8},
+	{prop: 'gunLifespan', label: 'Q寿命', span: 8},
+	{prop: 'externalPlugIn', label: '外挂', span: 8},
+	{prop: 'signalSource', label: '信号源', span: 8},
+	{prop: 'installPosition', label: '安装位置', span: 8},
+	{prop: 'installDirection', label: '安装方向', span: 8},
+	{prop: 'connectionMethod', label: '连接方式', span: 8},
+	{prop: 'action', label: '动作', span: 8},
+	{prop: 'aperture', label: '孔径', span: 8},
+	{prop: 'firedNumber', label: '射弹数量', span: 8},
+	{prop: 'remark', label: '备注', span: 8},
+	{prop: 'remark1', label: '备注1', span: 8},
+	{prop: 'remark2', label: '备注2', span: 8},
+	{prop: 'remark3', label: '备注3', span: 8},
+	{prop: 'remark4', label: '备注4', span: 8},
+	{prop: 'remark5', label: '备注5', span: 8},
+	{prop: 'remark6', label: '备注6', span: 8},
+	{prop: 'remark7', label: '备注7', span: 8},
+	{prop: 'createTime', label: '创建时间', span: 8},
+	{prop: 'updateTime', label: '更新时间', span: 8},
+	{prop: 'attachmentPath', label: '信号特征数据', span: 16},
 
 	// { prop: 'deviceType', label: '设备类型', span: 8, formatter: (val: any) => { return val } },
 	// { prop: 'model', label: '设备型号', span: 8, formatter: (val: any) => { return val } },
@@ -150,6 +152,11 @@ const chartLoading = ref(false)
 
 // 示波器图像配置
 const chartOption = reactive({
+	title: {
+		// text: '数据图像',
+		subtext: "数据图像",
+		left: 'center'
+	},
 	grid: {
 		left: 60,
 		top: 60,
@@ -169,16 +176,16 @@ const chartOption = reactive({
 		}
 	},
 	dataZoom: [
-	    {
-	        minSpan: 10,
+		{
+			minSpan: 10,
 			xAxisIndex: [0],
-	        filterMode: 'none',
-	        type: 'inside',
-	        // type: 'slider',
-	        start: 0,
-	        end: 100,
+			filterMode: 'none',
+			type: 'inside',
+			// type: 'slider',
+			start: 0,
+			end: 100,
 			bottom: 5,
-	    }
+		}
 	],
 	xAxis: {
 		data: [],
@@ -233,7 +240,7 @@ function initEChart(ref: HTMLElement | null, option: any) {
 }
 
 function downloadCsv(data: object) {
-	const { attachmentPath, attachmentName } = data
+	const {attachmentPath, attachmentName} = data
 	const link = document.createElement("a");
 	link.setAttribute("href", attachmentPath || "#");
 	// let fileName = url?.split('/').pop();
@@ -263,7 +270,7 @@ function transferToNumber(inputNumber: any) {
 	inputNumber = parseFloat(inputNumber);
 	let format = inputNumber.toExponential(); // 转换为标准的科学计数法形式（字符串）
 	let tmpArray = format.match(/\d(?:\.(\d*))?e([+-]\d+)/); // 分离出小数值和指数值
-	if (tmpArray && tmpArray[2]){
+	if (tmpArray && tmpArray[2]) {
 		let fractionDigits = Math.max(0, (tmpArray[1] || '').length - Number(tmpArray[2]))
 		return inputNumber.toFixed(fractionDigits);
 	} else {
@@ -271,7 +278,7 @@ function transferToNumber(inputNumber: any) {
 	}
 }
 
-function parseData (data: []) {
+function parseData(data: []) {
 	const xData: any[] = [];
 	const yData: never[] = [];
 	for (let i = 0; i < data.length; i++) {
@@ -287,8 +294,9 @@ function parseData (data: []) {
 
 onMounted(() => {
 	chartLoading.value = true
-	service.signal.attachment.info({ id: props.detailData.attachmentId }).then(res => {
-		const { xData, yData } = parseData(res.data)
+	service.signal.attachment.info({id: props.detailData.attachmentId}).then(res => {
+		const {xData, yData} = parseData(res.data)
+		chartOption.title.subtext = `${props.detailData?.fileCode} 数据图像`
 		chartOption.xAxis.data = <never[]>xData
 		chartOption.series[0].data = yData
 		initEChart(document.getElementById("mainChartRef"), chartOption);
@@ -315,16 +323,18 @@ onMounted(() => {
 			</template>
 			<div>
 				<span v-if="item.prop !== 'attachmentPath'">{{ detailData[item.prop] }}</span>
-				<span v-else><el-link type="primary" @click="downloadCsv(detailData)">点击下载：{{ detailData['attachmentName'] }}</el-link></span>
+				<span v-else><el-link type="primary" @click="downloadCsv(detailData)">点击下载：{{
+						detailData['attachmentName']
+					}}</el-link></span>
 				<!--<span v-if="!item?.formatter">{{ detailData[item.prop] }}</span>-->
 				<!--<span v-else>{{ item?.formatter(detailData[item.prop]) }}</span>-->
 			</div>
 		</el-descriptions-item>
 	</el-descriptions>
 
-	<content-divider title="数据图像" style="font-size: 16px;font-weight: bold;" />
+	<content-divider title="数据图像" style="font-size: 16px;font-weight: bold;"/>
 
-	<div id="mainChartRef" v-loading="chartLoading" class="chart-main" />
+	<div id="mainChartRef" v-loading="chartLoading" class="chart-main"/>
 
 </template>
 
@@ -332,10 +342,12 @@ onMounted(() => {
 .el-descriptions {
 	margin-top: 20px;
 }
+
 .cell-item {
 	display: flex;
 	align-items: center;
 }
+
 .margin-top {
 	margin-top: 20px;
 }
