@@ -26,6 +26,7 @@
 			</el-carousel>
 		</div>
 		<div class="bottom">
+			<!--<div>Designed & Powerd by xy</div>-->
 			<div>Copyright © 2023 四川云智慧安科技有限公司</div>
 			<div>最后更新日期：2023年6月19日 16:32:25 版本：V1.0.0</div>
 		</div>
@@ -66,6 +67,14 @@ if (now > 0 && now <= 6) {
 	background-color: white;
 	padding: 15px;
 	align-items: center;
+
+	h2 {
+		font-family: "Times New Roman", Times, serif;
+
+		span {
+			font-family: "Times New Roman", Times, serif;
+		}
+	}
 }
 
 .center {
@@ -82,14 +91,25 @@ if (now > 0 && now <= 6) {
 	padding-bottom: 10px;
 	opacity: 0.8;
 }
+
 .carousel {
 	//background-color: #99a9bf;
-	background-color: #d3dce6;
+	//background-color: #d3dce6;
+	background-color: #d3dce6a8;
 	border-radius: 10px;
 	//background-image: linear-gradient(rgba(211, 220, 230, 0.6), rgb(71, 86, 105));
 	//background-image: linear-gradient(rgba(0, 0, 255, 0.5), rgba(255, 255, 0, 0.5));
-
+	//background-image: url("/home_bg.png");
+	/* 兜底，IE和Firefox浏览器 */
+	background-image: url("/home_bg.png");
+	--transparent: url(data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==);
+	/* Safari最近版本已经不需要私有前缀了 */
+	background-image: cross-fade(var(--transparent), url(/home_bg.png), 60%);
+	/* 如使用自定义属性，-webkit-语句需要放在没有私有前缀语句的下面 */
+	background-image: -webkit-cross-fade(var(--transparent), url(/home_bg.png), 60%);
+	background-size: cover;
 }
+
 /*
 .el-carousel__item:nth-child(2n) {
 	//background-color: #99a9bf;
