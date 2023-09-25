@@ -34,11 +34,11 @@
 
 <script lang="ts" name="home" setup>
 import {useBase} from "/$/base";
-import {reactive, ref} from "vue";
+import {ref} from "vue";
 
 const {user} = useBase();
 
-const userInfo = reactive({
+const userInfo = ref<Eps.BaseSysUserEntity>({
 	...user
 })
 
