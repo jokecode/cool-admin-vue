@@ -28,7 +28,8 @@ export const config: Config = {
 			// 转场动画
 			transition: "slide",
 			// 首页组件
-			home: () => import("/$/demo/views/home/index.vue")
+			// home: () => import("/$/demo/views/home/index.vue")
+			home: () => import("/$/home/views/index.vue")
 		},
 
 		// 字体图标库
