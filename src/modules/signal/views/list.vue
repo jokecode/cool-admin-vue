@@ -1,5 +1,5 @@
 <template>
-	<cl-crud v-show="!isFullScreen && !showImageComparison" ref="Crud">
+	<cl-crud v-show="!isFullScreen && !showImageComparison" v-visibility="{ show: !isFullScreen && !showImageComparison }" ref="Crud">
 		<cl-row>
 			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" reset-btn></cl-filter-group>
 		</cl-row>
