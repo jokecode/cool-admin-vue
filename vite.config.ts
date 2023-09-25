@@ -1,11 +1,13 @@
 import path from "path";
-import { UserConfig } from "vite";
+import { UserConfig, loadEnv, ConfigEnv  } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from "@vitejs/plugin-vue-jsx";
 import compression from "vite-plugin-compression";
 import { visualizer } from "rollup-plugin-visualizer";
 import { proxy } from "./src/cool/config/proxy";
 import { cool } from "./build/cool";
+// @ts-ignore
+import { createHtmlPlugin } from "vite-plugin-html";
 
 function resolve(dir: string) {
 	return path.resolve(__dirname, ".", dir);
@@ -13,7 +15,10 @@ function resolve(dir: string) {
 
 // https://vitejs.dev/config
 
-export default (): UserConfig => {
+export default ({ mode }: ConfigEnv): UserConfig => {
+	// 根据当前工作目录中的 `mode` 加载 .env 文件
+	// 设置第三个参数为 '' 来加载所有环境变量，而不管是否有 `VITE_` 前缀。
+	const env = loadEnv(mode, process.cwd(), 'VITE_')
 	return {
 		base: "/",
 		plugins: [
@@ -25,7 +30,14 @@ export default (): UserConfig => {
 				open: false,
 				gzipSize: true,
 				brotliSize: true
-			})
+			}),
+			createHtmlPlugin({
+				inject: {
+					data: {
+						...env
+					},
+				},
+			}),
 		],
 		css: {
 			preprocessorOptions: {

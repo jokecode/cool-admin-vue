@@ -19,7 +19,7 @@
 						</div>
 						<div style="line-height: 2em;opacity: 0.75;">
 							<h3>应用总体单位：重庆建设工业（集团）有限责任公司</h3>
-							<h3>成果申报单位：四川云智慧安科技有限公司</h3>
+							<h3>成果申报单位：{{ companyName }}</h3>
 						</div>
 					</div>
 				</el-carousel-item>
@@ -27,8 +27,8 @@
 		</div>
 		<div class="bottom">
 			<!--<div>Designed & Powerd by xy</div>-->
-			<div>Copyright © 2023 四川云智慧安科技有限公司</div>
-			<div>最后更新日期：2023年6月19日 16:32:25 版本：V1.0.0</div>
+			<div>Copyright {{ copyright }} {{ companyName }}</div>
+			<div>最后更新日期：{{ systemUpdateDate }} 版本：{{ version }}</div>
 		</div>
 	</div>
 </template>
@@ -42,6 +42,12 @@ const {user} = useBase();
 const userInfo = ref<Eps.BaseSysUserEntity>({
 	...user
 })
+
+const version = ref<string>(import.meta.env.VITE_APP_VERSION)
+const systemUpdateDate = ref<string>(import.meta.env.VITE_APP_SYSTEM_UPDATE_DATE)
+const companyName = ref<string>(import.meta.env.VITE_APP_COMPANY_NAME)
+const copyright = ref<string>(import.meta.env.VITE_APP_COPYRIGHT)
+
 
 const greeting = ref<string>('')
 const now = (new Date()).getHours();
@@ -57,8 +63,6 @@ if (now > 0 && now <= 6) {
 } else {
 	greeting.value = "晚上好，";
 }
-
-
 </script>
 
 <style lang="scss" scoped>
@@ -87,7 +91,7 @@ if (now > 0 && now <= 6) {
 	background-color: white;
 	text-align: center;
 	line-height: 2em;
-	padding-top: 15px;
+	padding-top: 5px;
 	padding-bottom: 10px;
 	opacity: 0.8;
 }
@@ -104,9 +108,9 @@ if (now > 0 && now <= 6) {
 	background-image: url("/home_bg.png");
 	--transparent: url(data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==);
 	/* Safari最近版本已经不需要私有前缀了 */
-	background-image: cross-fade(var(--transparent), url(/home_bg.png), 60%);
+	background-image: cross-fade(var(--transparent), url(/home_bg.png), 75%);
 	/* 如使用自定义属性，-webkit-语句需要放在没有私有前缀语句的下面 */
-	background-image: -webkit-cross-fade(var(--transparent), url(/home_bg.png), 60%);
+	background-image: -webkit-cross-fade(var(--transparent), url(/home_bg.png), 75%);
 	background-size: cover;
 }
 
