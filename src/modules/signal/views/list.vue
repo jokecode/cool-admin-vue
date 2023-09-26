@@ -50,7 +50,8 @@
 			<template #slot-el-upload="{ scope }">
 				<el-upload
 					ref="oscFileElUploadRef"
-					v-model:file-list="fileList"
+					:key="scope.fileCode"
+					:file-list="fileList"
 					:auto-upload="false"
 					:on-change="handleChange"
 					:on-preview="handlePreview"
@@ -1347,8 +1348,8 @@ const Upsert = useUpsert({
 	async onSubmit(data, {done, close}) {
 		const fd = new FormData();
 		// 信号特征 数据
-		for (const i in data) {
-			data[i] && fd.append(i, data[i]); // undefined、null和''值不传给后端
+		for (const i in Upsert?.value?.form) {
+			Upsert?.value?.form[i] && fd.append(i, Upsert?.value?.form[i]); // undefined、null和''值不传给后端
 		}
 		if (uploadFile.value && uploadFile.value.raw) {
 			// 文件名
@@ -1401,14 +1402,20 @@ const Upsert = useUpsert({
 	},
 	onOpen(data) {
 		if (['info', 'update'].includes(Upsert.value?.mode || '')) {
-			fileList.value = [
-				{
-					name: data.attachmentName,
-					url: data.attachmentPath,
-				}
-			]
+			if (data.attachmentId) {
+				fileList.value = [
+					{
+						name: data.attachmentName,
+						url: data.attachmentPath,
+					}
+				]
+			} else {
+				fileList.value = [];
+				oscFileElUploadRef.value?.clearFiles();
+			}
 		} else {
-			fileList.value = []
+			fileList.value = [];
+			oscFileElUploadRef.value?.clearFiles();
 		}
 	}
 });
@@ -1424,8 +1431,16 @@ const handleChange: UploadProps['onChange'] = (file, uploadFiles) => {
 const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
 	Upsert.value?.showLoading();
 	console.log('handleRemove', file, uploadFiles);
-	Upsert.value?.setForm('data', '')
-	Upsert.value?.setData('data', '')
+	Upsert.value?.setForm('data', null)
+	Upsert.value?.setForm('attachmentId', null)
+	Upsert.value?.setForm('attachmentName', null)
+	Upsert.value?.setForm('attachmentPath', null)
+
+	Upsert.value?.setData('data', null)
+	Upsert.value?.setData('attachmentId', null)
+	Upsert.value?.setData('attachmentName', null)
+	Upsert.value?.setData('attachmentPath', null)
+	oscFileElUploadRef.value?.clearFiles()
 	Upsert.value?.hideLoading();
 }
 
