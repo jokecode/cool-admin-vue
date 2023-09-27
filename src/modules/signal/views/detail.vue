@@ -4,6 +4,8 @@ import * as echarts from "echarts";
 import ContentDivider from '/@/modules/components/content-divider/index.vue'
 import {useCool} from "/@/cool";
 import {ElMessage} from "element-plus";
+import {useStore} from "/$/base/store";
+const {param} = useStore();
 
 const {service} = useCool();
 const props = defineProps({
@@ -56,6 +58,29 @@ const detailProps = reactive([
 	// { prop: 'createTime', label: '创建时间', span: 8, formatter: (val: any) => { return val } },
 	// { prop: 'uploadTime', label: '上传时间', span: 8, formatter: (val: any) => { return val } }
 ]);
+
+const needChangeProps = ['remark1', 'remark2', 'remark3', 'remark4', 'remark5', 'remark6', 'remark7'];
+
+function setNewLabel(prop: string, label:string) {
+	for (let detailProp of detailProps) {
+		if (needChangeProps.includes(detailProp.prop) && detailProp.prop === prop) {
+			detailProp.label = label
+			break;
+		}
+	}
+}
+
+// 更改预留字段的显示名称
+function changeShowLabel() {
+	const list: [] = param.get('list').value;
+	for (const item of list) {
+		if (item?.keyName && needChangeProps.includes(item?.keyName)) {
+			setNewLabel(item?.keyName, item.name);
+		}
+	}
+}
+
+changeShowLabel();
 
 // const chartOption = reactive({
 // 	grid: {

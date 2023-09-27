@@ -59,8 +59,8 @@
 					:before-remove="beforeRemove"
 					:limit="1"
 					:on-exceed="handleExceed"
-					:http-request="handleRequest"
 				>
+					<!--:http-request="handleRequest"-->
 					<template #trigger>
 						<el-button type="primary" icon="el-icon-upload">上传示波器csv文件</el-button>
 					</template>
@@ -112,10 +112,12 @@ import Detail from "/@/modules/signal/views/detail.vue";
 import Comparison from "/@/modules/signal/views/comparison.vue";
 import FullScreen from "/$/components/full-screen/index.vue";
 import {Feature} from "/$/signal/entity/feature";
+import {useStore} from "/$/base/store";
 
 const {user} = useBase();
 
 const {dict} = useDict();
+const {param} = useStore();
 const {refs, setRefs, service} = useCool();
 
 const isFullScreen = ref(false)
@@ -226,6 +228,30 @@ const options = reactive({
 	// 备注7
 	remark7: getDictListByCode("Remark7"),
 });
+
+const showLabelNames = ref<object>({
+	remark1: '备注1',
+	remark2: '备注2',
+	remark3: '备注3',
+	remark4: '备注4',
+	remark5: '备注5',
+	remark6: '备注6',
+	remark7: '备注7',
+})
+
+// 更改预留字段的显示名称
+function changeShowLabel() {
+	const needChangeProps = ['remark1', 'remark2', 'remark3', 'remark4', 'remark5', 'remark6', 'remark7']
+	const list: [] = param.get('list').value
+	for (const item of list) {
+		console.log('item===>', item)
+		if (item?.keyName && needChangeProps.includes(item?.keyName)) {
+			showLabelNames.value[item?.keyName] = item.name;
+		}
+	}
+}
+
+changeShowLabel();
 
 function getDictListByCode(dictCode: string) {
 	return dict.get(dictCode).value.sort((a, b) => {
@@ -458,7 +484,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注1",
+		label: showLabelNames.value['remark1'],
 		prop: "remark1",
 		component: {
 			name: "el-select",
@@ -474,7 +500,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注2",
+		label: showLabelNames.value['remark2'],
 		prop: "remark2",
 		component: {
 			name: "el-select",
@@ -490,7 +516,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注3",
+		label: showLabelNames.value['remark3'],
 		prop: "remark3",
 		component: {
 			name: "el-select",
@@ -506,7 +532,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注4",
+		label: showLabelNames.value['remark4'],
 		prop: "remark4",
 		component: {
 			name: "el-select",
@@ -522,7 +548,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注5",
+		label: showLabelNames.value['remark5'],
 		prop: "remark5",
 		component: {
 			name: "el-select",
@@ -538,7 +564,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注6",
+		label: showLabelNames.value['remark6'],
 		prop: "remark6",
 		component: {
 			name: "el-select",
@@ -554,7 +580,7 @@ const items = ref<ClForm.Item[]>([
 
 	},
 	{
-		label: "备注7",
+		label: showLabelNames.value['remark7'],
 		prop: "remark7",
 		component: {
 			name: "el-select",
@@ -725,7 +751,7 @@ const Table = useTable({
 			align: 'left'
 		},
 		{
-			label: "备注1",
+			label: showLabelNames.value['remark1'],
 			prop: "remark1",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark1')
@@ -736,7 +762,7 @@ const Table = useTable({
 
 
 		{
-			label: "备注2",
+			label: showLabelNames.value['remark2'],
 			prop: "remark2",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark2')
@@ -745,7 +771,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: "备注3",
+			label: showLabelNames.value['remark3'],
 			prop: "remark3",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark3')
@@ -754,7 +780,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: "备注4",
+			label: showLabelNames.value['remark4'],
 			prop: "remark4",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark4')
@@ -763,7 +789,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: "备注5",
+			label: showLabelNames.value['remark5'],
 			prop: "remark5",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark5')
@@ -772,7 +798,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: "备注6",
+			label: showLabelNames.value['remark6'],
 			prop: "remark6",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark6')
@@ -781,7 +807,7 @@ const Table = useTable({
 			minWidth: 120
 		},
 		{
-			label: "备注7",
+			label: showLabelNames.value['remark7'],
 			prop: "remark7",
 			formatter: (row, column, val) => {
 				return formatterCellByCode(row, column, val, 'remark7')
@@ -1154,7 +1180,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注1",
+			label: showLabelNames.value['remark1'],
 			prop: "remark1",
 			span: 12,
 			hook: {
@@ -1176,7 +1202,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注2",
+			label: showLabelNames.value['remark2'],
 			prop: "remark2",
 			span: 12,
 			hook: {
@@ -1198,7 +1224,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注3",
+			label: showLabelNames.value['remark3'],
 			prop: "remark3",
 			span: 12,
 			hook: {
@@ -1220,7 +1246,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注4",
+			label: showLabelNames.value['remark4'],
 			prop: "remark4",
 			span: 12,
 			hook: {
@@ -1242,7 +1268,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注5",
+			label: showLabelNames.value['remark5'],
 			prop: "remark5",
 			span: 12,
 			hook: {
@@ -1264,7 +1290,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注6",
+			label: showLabelNames.value['remark6'],
 			prop: "remark6",
 			span: 12,
 			hook: {
@@ -1286,7 +1312,7 @@ const Upsert = useUpsert({
 
 		},
 		{
-			label: "备注7",
+			label: showLabelNames.value['remark7'],
 			prop: "remark7",
 			span: 12,
 			hook: {
