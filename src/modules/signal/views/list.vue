@@ -1436,16 +1436,27 @@ const Upsert = useUpsert({
 					}
 				]
 			} else {
-				fileList.value = [];
-				oscFileElUploadRef.value?.clearFiles();
+				removeAttInfo()
 			}
 		} else {
-			fileList.value = [];
-			oscFileElUploadRef.value?.clearFiles();
+			removeAttInfo()
 		}
 	}
 });
 
+function removeAttInfo() {
+	uploadFile.value = null;
+	Upsert.value?.setForm('data', null);
+	Upsert.value?.setForm('attachmentId', null);
+	Upsert.value?.setForm('attachmentName', null);
+	Upsert.value?.setForm('attachmentPath', null);
+
+	Upsert.value?.setData('data', null);
+	Upsert.value?.setData('attachmentId', null);
+	Upsert.value?.setData('attachmentName', null);
+	Upsert.value?.setData('attachmentPath', null);
+	oscFileElUploadRef.value?.clearFiles();
+}
 
 const handleChange: UploadProps['onChange'] = (file, uploadFiles) => {
 	console.log('handleChange', file, uploadFiles);
@@ -1457,16 +1468,7 @@ const handleChange: UploadProps['onChange'] = (file, uploadFiles) => {
 const handleRemove: UploadProps['onRemove'] = (file, uploadFiles) => {
 	Upsert.value?.showLoading();
 	console.log('handleRemove', file, uploadFiles);
-	Upsert.value?.setForm('data', null)
-	Upsert.value?.setForm('attachmentId', null)
-	Upsert.value?.setForm('attachmentName', null)
-	Upsert.value?.setForm('attachmentPath', null)
-
-	Upsert.value?.setData('data', null)
-	Upsert.value?.setData('attachmentId', null)
-	Upsert.value?.setData('attachmentName', null)
-	Upsert.value?.setData('attachmentPath', null)
-	oscFileElUploadRef.value?.clearFiles()
+	removeAttInfo();
 	Upsert.value?.hideLoading();
 }
 
