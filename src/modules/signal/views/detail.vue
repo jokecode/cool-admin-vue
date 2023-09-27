@@ -1,5 +1,5 @@
 <script setup lang="ts" name="feature-detail">
-import {onMounted, reactive, ref} from "vue";
+import {nextTick, onMounted, reactive, ref} from "vue";
 import * as echarts from "echarts";
 import ContentDivider from '/@/modules/components/content-divider/index.vue'
 import {useCool} from "/@/cool";
@@ -55,7 +55,7 @@ const detailProps = reactive([
 	// { prop: 'loginName', label: '客户账号', span: 8, formatter: (val: any) => { return val } },
 	// { prop: 'createTime', label: '创建时间', span: 8, formatter: (val: any) => { return val } },
 	// { prop: 'uploadTime', label: '上传时间', span: 8, formatter: (val: any) => { return val } }
-])
+]);
 
 // const chartOption = reactive({
 // 	grid: {
@@ -148,7 +148,9 @@ const detailProps = reactive([
 // 	]
 // });
 
-const chartLoading = ref(false)
+const chartLoading = ref(false);
+const chartDataExists = ref<boolean>(false); // 默认图表数据不存在
+
 
 // 示波器图像配置
 const chartOption = reactive({
@@ -292,19 +294,31 @@ function parseData(data: []) {
 	}
 }
 
-onMounted(() => {
+function init() {
+	if (!props.detailData?.attachmentId) {
+		return false
+	}
 	chartLoading.value = true
 	service.signal.attachment.info({id: props.detailData.attachmentId}).then(res => {
-		const {xData, yData} = parseData(res.data)
-		chartOption.title.subtext = `${props.detailData?.fileCode} 数据图像`
-		chartOption.xAxis.data = <never[]>xData
-		chartOption.series[0].data = yData
-		initEChart(document.getElementById("mainChartRef"), chartOption);
-		chartLoading.value = false
+		if (res && res.data && res.data.length > 0) {
+			chartDataExists.value = true;
+			nextTick(() => {
+				const {xData, yData} = parseData(res.data);
+				chartOption.title.subtext = `${props.detailData?.fileCode} 数据图像`;
+				chartOption.xAxis.data = <never[]>xData;
+				chartOption.series[0].data = yData;
+				initEChart(document.getElementById("mainChartRef"), chartOption);
+			})
+		}
+		chartLoading.value = false;
 	}).catch(err => {
 		ElMessage.error(err.message);
 		chartLoading.value = false
 	})
+}
+
+onMounted(() => {
+	init();
 })
 
 </script>
@@ -334,7 +348,8 @@ onMounted(() => {
 
 	<content-divider title="数据图像" style="font-size: 16px;font-weight: bold;"/>
 
-	<div id="mainChartRef" v-loading="chartLoading" class="chart-main"/>
+	<div v-if="chartDataExists" id="mainChartRef" v-loading="chartLoading" class="chart-main"/>
+	<el-empty v-else description="暂无数据" v-loading="chartLoading" class="chart-main" />
 
 </template>
 
