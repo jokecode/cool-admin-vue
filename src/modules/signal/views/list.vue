@@ -1591,7 +1591,44 @@ function imageComparison() {
 		return false
 	}
 	// 需要formatter的字段
-	const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
+	const formatterProps = [
+		// Q型
+		"gunType",
+		// Q编号
+		"gunCode",
+		// Q寿命
+		"gunLifespan",
+		// 外挂
+		"externalPlugIn",
+		// 信号源
+		"signalSource",
+		// 安装位置
+		"installPosition",
+		// 安装方向
+		"installDirection",
+		// 连接方式
+		"connectionMethod",
+		// 动作
+		"action",
+		// 孔径
+		"aperture",
+		// 射弹数量
+		"firedNumber",
+		// 备注1
+		"remark1",
+		// 备注2
+		"remark2",
+		// 备注3
+		"remark3",
+		// 备注4
+		"remark4",
+		// 备注5
+		"remark5",
+		// 备注6
+		"remark6",
+		// 备注7
+		"remark7",
+	];
 	detailDataList.length = 0
 	for (let i = 0; i < selection.length; i++) {
 		let item = selection[i];
