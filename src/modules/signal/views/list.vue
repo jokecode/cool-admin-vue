@@ -1586,10 +1586,10 @@ function imageComparison() {
 		ElMessage.warning('请勾选需要选择的数据！');
 		return false
 	}
-	// if (selection.length > 20) {
-	// 	ElMessage.warning('勾选的数量不允许超过20个！');
-	// 	return false
-	// }
+	if (selection.length > 20) {
+		ElMessage.warning('勾选的数量不允许超过20个！');
+		return false
+	}
 	// 需要formatter的字段
 	const formatterProps = ["gunType", "gunCode", "gunLifespan", "externalPlugIn", "signalSource", "installPosition", "installDirection", "connectionMethod", "action", "aperture", "firedNumber", "remark1", "remark2", "remark3", "remark4", "remark5", "remark6", "remark7",]
 	detailDataList.length = 0
