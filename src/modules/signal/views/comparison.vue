@@ -290,79 +290,64 @@ function parseAllData(data: []) {
 }
 
 onMounted(() => {
+	// 构建批量请求
 	const requestAttIds = []
 	const promiseList = []
 	for (let i = 0; i < props.detailDataList?.length; i++) {
 		const item: Feature = <Feature>props.detailDataList[i];
 		item['attachmentId'] && requestAttIds.push(item['attachmentId'])
-		// const option = JSON.parse(JSON.stringify(chartOption))
 		const id = item['attachmentId']
 		if (id) {
 			promiseList.push(service.signal.attachment.info({id: id}));
 		}
-		// service.signal.attachment.info({id:item['attachmentId']}).then(res => {
-		//   option.title.subtext = `${item.fileCode} 数据图像`
-		//   const { xData, yData } = parseData(res['data'])
-		//   option.xAxis.data = <never[]>xData
-		//   option.series[0].data = yData
-		//   initEChart(document.getElementById(`id_${item['id']}`), option);
-		// })
 	}
 	if (promiseList && promiseList.length > 0) {
 		chartLoadings.value = true
 		Promise.all(promiseList).then((res = []) => {
-			for (const item of res) {
-				const option = JSON.parse(JSON.stringify(chartOption))
-				const featureItem = getFeatureItemByAttId(<[]>props.detailDataList, item?.id)
-				option.title.subtext = `${featureItem?.fileCode} 数据图像`
-				const {xData, yData} = parseData(item['data'])
-				option.xAxis.data = <never[]>xData
-				option.series[0].data = yData
-				initEChart(document.getElementById(`id_${item['id']}`), option);
-			}
-			chartLoadings.value = false;
-
-			// const seriesItem = {
-			//   name:'曲线2',
-			//   symbolSize: 5,
-			//   data: [],
-			//   type: 'line',
-			//   smooth:true,
-			//   showSymbol:false,
-			//   barGap: 0
-			// }
 			allChartOption.legend.data = []
 			allChartOption.series = []
 			const options = JSON.parse(JSON.stringify(allChartOption))
 			for (const detailItem of props.detailDataList) {
 				options.legend.data.push(detailItem?.fileCode);
 				const attachmentItem = getAttachmentItemByAttId(<[]>res, detailItem?.attachmentId)
-				options.series.push({
-					name: detailItem?.fileCode,
-					symbolSize: 5,
-					// 折线图在数据量远大于像素点时候的降采样策略，
-					// 开启后可以有效的优化图表的绘制效率，
-					// 默认关闭，也就是全部绘制不过滤数据点。
-					// 参考文档：https://echarts.apache.org/zh/option.html#series-line.sampling
-					// 可选：
-					// 'lttb' 采用 Largest-Triangle-Three-Bucket 算法，
-					// 可以最大程度保证采样后线条的趋势，形状和极值。
-					// 'average' 取过滤点的平均值
-					// 'max' 取过滤点的最大值
-					// 'min' 取过滤点的最小值
-					// 'sum' 取过滤点的和
-					sampling: 'lttb',
-					data: parseAllData(attachmentItem),
-					type: 'line',
-					smooth: true,
-					showSymbol: false,
-					barGap: 0
-				})
+
+				// 渲染单个图表
+				const option = JSON.parse(JSON.stringify(chartOption))
+				option.title.subtext = `${detailItem?.fileCode} 数据图像`
+				const {xData, yData} = parseData(attachmentItem?.data || []);
+				option.xAxis.data = <never[]>xData
+				option.series[0].data = yData
+				initEChart(document.getElementById(`id${attachmentItem?.id}${detailItem?.id}`), option);
+
+				if (attachmentItem?.data && attachmentItem.data.length > 0) {
+					options.series.push({
+						name: detailItem?.fileCode,
+						symbolSize: 5,
+						// 折线图在数据量远大于像素点时候的降采样策略，
+						// 开启后可以有效的优化图表的绘制效率，
+						// 默认关闭，也就是全部绘制不过滤数据点。
+						// 参考文档：https://echarts.apache.org/zh/option.html#series-line.sampling
+						// 可选：
+						// 'lttb' 采用 Largest-Triangle-Three-Bucket 算法，
+						// 可以最大程度保证采样后线条的趋势，形状和极值。
+						// 'average' 取过滤点的平均值
+						// 'max' 取过滤点的最大值
+						// 'min' 取过滤点的最小值
+						// 'sum' 取过滤点的和
+						sampling: 'lttb',
+						data: parseAllData(attachmentItem?.data),
+						type: 'line',
+						smooth: true,
+						showSymbol: false,
+						barGap: 0
+					})
+				}
 			}
 
-			console.log('options======>', options)
+			console.log('数据图像合并展示的options======>', options)
 			initEChart(document.getElementById('mainChartRef'), options)
 
+			chartLoadings.value = false;
 		}).catch(err => {
 			ElMessage.error(err.message);
 			chartLoadings.value = false;
@@ -378,17 +363,16 @@ onMounted(() => {
 })
 
 function getAttachmentItemByAttId(arr: [], attId: any) {
-	const findItem = arr.find((item) => {
+	return arr.find((item) => {
 		return item?.id == attId
 	})
-	return findItem?.data
 }
 
-function getFeatureItemByAttId(arr: [], attId: any) {
-	return arr.find((item) => {
-		return item?.attachmentId == attId
-	})
-}
+// function getFeatureItemByAttId(arr: [], attId: any) {
+// 	return arr.find((item) => {
+// 		return item?.attachmentId == attId
+// 	})
+// }
 
 </script>
 
@@ -430,17 +414,29 @@ function getFeatureItemByAttId(arr: [], attId: any) {
 
 			<br>
 			<div style="display: flex;justify-content: flex-start;align-items: center;">
-				<content-divider title="数据图像" style="font-size: 16px;font-weight: bold; margin-right: 30px;"/>
-				<div style="display: flex;align-items: center;">
-					<div>是否显示图表：</div>
-					<el-checkbox v-for="(item, index) in detailDataList" v-model="item.showChart" :key="index"
-					             :label="item.fileCode"/>
-				</div>
+				<content-divider title="数据图像（合并展示）" style="font-size: 16px;font-weight: bold; margin-right: 30px;flex-basis: 220px;"/>
+				<!--<div style="display: flex;align-items: center;flex-direction: row;width: 100%;">-->
+				<!--	<div style="flex-basis: 135px;">是否显示图表：</div>-->
+				<!--	<el-scrollbar style="width: 100%;">-->
+				<!--		<el-checkbox v-for="(item, index) in detailDataList" v-model="item.showChart" :key="index"-->
+				<!--		             :label="item.fileCode"/>-->
+				<!--	</el-scrollbar>-->
+				<!--</div>-->
 			</div>
 
 			<div id="mainChartRef" v-loading="chartLoadings" class="chart-main"/>
 
-			<div v-for="(item, index) in detailDataList" v-show="item.showChart" :id="`id_${item.attachmentId}`"
+			<div style="display: flex;justify-content: flex-start;align-items: center;margin-top: 10px;">
+				<content-divider title="数据图像" style="font-size: 16px;font-weight: bold; margin-right: 30px;flex-basis: 100px;"/>
+				<div style="display: flex;align-items: center;flex-direction: row;width: 100%;">
+					<div style="flex-basis: 135px;">是否显示图表：</div>
+					<el-scrollbar style="width: 100%;">
+						<el-checkbox v-for="(item, index) in detailDataList" v-model="item.showChart" :key="index"
+						             :label="item.fileCode"/>
+					</el-scrollbar>
+				</div>
+			</div>
+			<div v-for="(item, index) in detailDataList" v-show="item.showChart" :id="`id${item.attachmentId}${item.id}`"
 			     :key="index" v-loading="chartLoadings" class="chart-main"/>
 			<br><br>
 		</div>
