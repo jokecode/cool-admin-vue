@@ -34,6 +34,12 @@ export declare interface Config {
 			}[];
 		};
 
+		showAutoMenuBtn: boolean,
+
+		showClChat: boolean,
+
+		showClTheme: boolean,
+
 		// 路由
 		router: {
 			// 模式

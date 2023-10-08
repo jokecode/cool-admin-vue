@@ -19,13 +19,13 @@
 
 		<!-- 工具栏 -->
 		<ul class="app-topbar__tools">
-			<auto-menu-btn />
+			<auto-menu-btn v-if="config.app.showAutoMenuBtn" />
 
-			<li>
+			<li v-if="config.app.showClChat">
 				<cl-chat />
 			</li>
 
-			<li>
+			<li v-if="config.app.showClTheme">
 				<cl-theme />
 			</li>
 		</ul>
@@ -64,6 +64,7 @@ import AutoMenuBtn from "/$/magic/components/auto-menu/btn.vue";
 
 const { router, service } = useCool();
 const { user, app } = useBase();
+import { config } from "/@/cool/config/index.ts";
 
 async function onCommand(name: string) {
 	switch (name) {

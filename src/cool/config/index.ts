@@ -21,6 +21,15 @@ export const config: Config = {
 			list: []
 		},
 
+		// 是否显示急速编码按钮
+		showAutoMenuBtn: false,
+
+		// 是否显示聊天/信息弹窗
+		showClChat: false,
+
+		// 是否显示主题切换按钮
+		showClTheme: false,
+
 		// 路由
 		router: {
 			// 模式
