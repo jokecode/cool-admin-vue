@@ -9,9 +9,9 @@ export const isDev = import.meta.env.MODE === "development";
 export const config: Config = {
 	// 项目信息
 	app: {
-		// Q支信号特征记录系统
+		// 特征信号知识图谱系统
 		// Gun Signal Feature Recording System
-		name: "Q支信号特征记录",
+		name: "特征信号知识图谱",
 
 		// 菜单
 		menu: {

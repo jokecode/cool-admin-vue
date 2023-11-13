@@ -10,5 +10,5 @@ bootstrap(app)
 		app.mount("#app");
 	})
 	.catch((err) => {
-		console.error("Q支信号特征记录系统 启动失败", err);
+		console.error("特征信号知识图谱系统 启动失败", err);
 	});
