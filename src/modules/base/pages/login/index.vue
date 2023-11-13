@@ -5,7 +5,8 @@
 				<img src="/logo.png" alt="Logo" />
 				<span>{{ app.info.name }}</span>
 			</div>
-			<p class="desc">构建QX射J特征信号知识图谱，为QX射D计数器研制提供基础数据</p>
+			<!--<p class="desc">构建QX射J特征信号知识图谱，为QX射D计数器研制提供基础数据</p>-->
+			<p class="desc"></p>
 
 			<el-form label-position="top" class="form" :disabled="saving">
 				<el-form-item label="用户名">
