@@ -3,8 +3,8 @@
 // const env = loadEnv(process?.env?.NODE_ENV || '', process.cwd(), 'VITE_')
 // const targetUrl = env.VITE_APP_SERVER_TARGET
 
-const targetUrl = 'http://jsq_server:8002'
-// const targetUrl = 'http://127.0.0.1:8002'
+const targetUrl = "http://jsq_server:8002";
+// const targetUrl = "http://127.0.0.1:8001";
 
 export const proxy = {
 	"/dev/": {
