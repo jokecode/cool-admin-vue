@@ -374,9 +374,12 @@ onMounted(() => {
 			</template>
 			<div>
 				<span v-if="item.prop !== 'attachmentPath'">{{ detailData[item.prop] }}</span>
-				<span v-else><el-link type="primary" @click="downloadCsv(detailData)">点击下载：{{
+				<span v-else>
+					<el-link v-if="detailData?.attachmentPath" type="primary" @click="downloadCsv(detailData)">点击下载：{{
 						detailData['attachmentName']
-					}}</el-link></span>
+					}}</el-link>
+					<span v-else>无</span>
+				</span>
 				<!--<span v-if="!item?.formatter">{{ detailData[item.prop] }}</span>-->
 				<!--<span v-else>{{ item?.formatter(detailData[item.prop]) }}</span>-->
 			</div>

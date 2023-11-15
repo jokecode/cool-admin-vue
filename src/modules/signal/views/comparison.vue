@@ -402,12 +402,12 @@ function getAttachmentItemByAttId(arr: [], attId: any) {
 								<span v-if="item.prop !== 'attachmentPath'">{{ detailData[item.prop] }}</span>
 								<!-- 提供文件下载链接 -->
 								<span v-else>
-								<el-link v-if="detailData.attachmentPath" type="primary"
-								         @click="downloadCsv(detailData)">点击下载：{{
-										detailData['attachmentName']
-									}}</el-link>
-								<span v-else>{{ detailData['attachmentName'] }}</span>
-							</span>
+									<el-link v-if="detailData.attachmentPath" type="primary"
+									         @click="downloadCsv(detailData)">点击下载：{{
+											detailData['attachmentName']
+										}}</el-link>
+									<span v-else>{{ detailData['attachmentName'] || '无' }}</span>
+								</span>
 								<!--<span v-if="!item?.formatter">{{ detailData[item.prop] }}</span>-->
 								<!--<span v-else>{{ item?.formatter(detailData[item.prop]) }}</span>-->
 							</div>
