@@ -1391,39 +1391,9 @@ const Upsert = useUpsert({
 		const mode = Upsert.value?.mode
 		// 判断新增还是修改
 		if (mode === 'add') {
-			// 自定义发送请求
-			service.signal.feature.request({
-				url: "/add",
-				headers: {'Content-Type': 'multipart/form-data'},
-				method: "POST",
-				data: fd,
-			}).then(() => {
-				ElMessage.success('新增成功！');
-				// 操作完，刷新列表
-				refresh();
-				done(); // 关闭加载状态
-				close(); // 关闭弹窗
-			}).catch(err => {
-				console.error('add res ===>', err)
-				ElMessage.error(err.message);
-				done();
-			})
+			add(fd, done, close)
 		} else if (mode === 'update') {
-			service.signal.feature.request({
-				url: "/update",
-				headers: {'Content-Type': 'multipart/form-data'},
-				method: "POST",
-				data: fd,
-			}).then(() => {
-				ElMessage.success('修改成功');
-				// 操作完，刷新列表
-				refresh();
-				done(); // 关闭加载状态
-				close(); // 关闭弹窗
-			}).catch(err => {
-				ElMessage.error(err.message);
-				done();
-			})
+			update(fd, done, close)
 		}
 	},
 	onOpen(data) {
@@ -1443,6 +1413,59 @@ const Upsert = useUpsert({
 		}
 	}
 });
+
+function add(fd: any, done: () => void, close: () => void) {
+	// 自定义发送请求
+	service.signal.feature.request({
+		url: "/add",
+		headers: {'Content-Type': 'multipart/form-data'},
+		method: "POST",
+		data: fd,
+	}).then(() => {
+		ElMessageBox.confirm("新增成功，是否继续新增？", "提示", {
+			type: "warning"
+		}).then(() => {
+			done();
+			// 第一次录入数据时默认初始值选项，第二录入数据时则是用上一次录入的记录；
+			// 例如文件编号初始2310200001，当第一次录入2310090001 第二次点击上传则是在上一次的历史2310090001上修改为2310090002
+			const fileCode = Upsert?.value?.form?.fileCode;
+			let lastNum = fileCode.substring(fileCode.length-1, fileCode.length)
+			if (!isNaN(Number(lastNum))) {
+				Upsert.value?.setForm('fileCode', `${fileCode.substring(0, fileCode.length-1)}${Number(lastNum)+1}`);
+			} else {
+				ElMessage.success('文件编号异常，请自行修改！');
+			}
+		}).catch(() => {
+			done(); // 关闭加载状态
+			close(); // 关闭弹窗
+		});
+		ElMessage.success('新增成功！');
+		// 操作完，刷新列表
+		refresh();
+	}).catch(err => {
+		console.error('add res ===>', err)
+		ElMessage.error(err.message);
+		done();
+	})
+}
+
+function update(fd: any, done: () => void, close: () => void) {
+	service.signal.feature.request({
+		url: "/update",
+		headers: {'Content-Type': 'multipart/form-data'},
+		method: "POST",
+		data: fd,
+	}).then(() => {
+		ElMessage.success('修改成功');
+		// 操作完，刷新列表
+		refresh();
+		done(); // 关闭加载状态
+		close(); // 关闭弹窗
+	}).catch(err => {
+		ElMessage.error(err.message);
+		done();
+	})
+}
 
 function removeAttInfo() {
 	uploadFile.value = null;
