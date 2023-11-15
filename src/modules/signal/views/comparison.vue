@@ -5,6 +5,7 @@ import ContentDivider from '/@/modules/components/content-divider/index.vue'
 import {useCool} from "/@/cool";
 import {ElMessage} from "element-plus";
 import {Feature} from "/$/signal/entity/feature";
+import { checkPerm } from "/$/base";
 
 const {service} = useCool();
 const props = defineProps({
@@ -127,7 +128,6 @@ const chartOption = reactive({
 		}
 	]
 });
-
 const allChartOption = reactive({
 	legend: {
 		// data:['曲线1', '曲线2']
@@ -141,12 +141,16 @@ const allChartOption = reactive({
 		}
 	},
 	toolbox: {
+		// 验证是否有添加权限，返回一个布尔值
 		show: true,
 		feature: {
 			dataZoom: {
 				 yAxisIndex: 'none'
 			},
-			dataView: {readOnly: false},
+			dataView: {
+				show: checkPerm(service.signal.feature.permission.chartOperations),
+				readOnly: false
+			},
 			//magicType: {type: ['line']},
 			restore: {},
 			saveAsImage: {}

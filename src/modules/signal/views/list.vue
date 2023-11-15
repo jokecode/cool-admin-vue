@@ -24,15 +24,15 @@
 			<!--<cl-search-key placeholder="搜索昵称、手机号" />-->
 			<cl-flex1/>
 			<!-- 图像对比 -->
-			<el-button v-permission="service.signal.feature.imageComparison" type="primary" @click="imageComparison">
+			<el-button v-permission="service.signal.feature.permission.imageComparison" type="primary" @click="imageComparison">
 				图像对比
 			</el-button>
 			<!-- 示波器导入模板下载 -->
-			<el-button v-permission="service.signal.feature.downloadTemplate" type="success" @click="downloadTemplate">
+			<el-button v-permission="service.signal.feature.permission.downloadTemplate" type="success" @click="downloadTemplate">
 				示波器导入模板下载
 			</el-button>
 			<!-- 自定义列 -->
-			<cl-column-custom :columns="Table?.columns || []"/>
+			<cl-column-custom v-permission="service.signal.feature.permission.customColumns" :columns="Table?.columns || []"/>
 		</cl-row>
 
 		<cl-row>
