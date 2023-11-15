@@ -246,6 +246,10 @@ function initEChart(ref: HTMLElement | null, option: any) {
 }
 
 function downloadCsv(data: object) {
+	if(!checkPerm(service.signal.feature.permission.chartOperations)) {
+		ElMessage.warning('该账号暂无权限下载数据');
+		return false;
+	}
 	const {attachmentPath, attachmentName} = data
 	const link = document.createElement("a");
 	link.setAttribute("href", attachmentPath || "#");
