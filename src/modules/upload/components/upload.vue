@@ -438,11 +438,11 @@ async function httpRequest(req: any, item?: any) {
 							item.progress = parseInt(String((e.loaded / e.total) * 100));
 							emit("progress", item);
 						},
-						proxy: mode == "local" ? true : false
+						proxy: mode === "local"
 					})
 					.then((res) => {
 						if (mode === "local") {
-							item.url = res;
+							item.url = res.replace(/^https?:\/\/[^\/]+/, "");
 							item.key = res.replace(/^https?:\/\/[^\/]+/, "");
 						} else {
 							item.url = `${preview || host}/${fileName}`;
