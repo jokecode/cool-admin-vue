@@ -1672,7 +1672,6 @@ function imageComparison() {
 
 // 示波器导入模板下载
 function downloadTemplate() {
-	service.signal.feature.downloadTemplate()
 	service.signal.feature.downloadTemplate().then(res => {
 		const link = document.createElement("a");
 		link.setAttribute("href", res || "#");
