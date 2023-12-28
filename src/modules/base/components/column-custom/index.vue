@@ -144,7 +144,16 @@ export default defineComponent({
 	&__dialog {
 		.left {
 			.el-checkbox {
-				margin-right: 10px;
+				margin-right: 0;
+			}
+			> div {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 12px;
+				justify-content: flex-start;
+				>label {
+					min-width: 120px;
+				}
 			}
 		}
 
