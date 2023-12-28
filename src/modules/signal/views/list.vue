@@ -1,7 +1,7 @@
 <template>
 	<cl-crud v-show="!isFullScreen && !showImageComparison" v-visibility="{ show: !isFullScreen && !showImageComparison }" ref="Crud">
 		<cl-row>
-			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" reset-btn></cl-filter-group>
+			<cl-filter-group class="signal-filter-group" :items="items" :data="formData" :on-search="queryData" reset-btn></cl-filter-group>
 		</cl-row>
 		<cl-row>
 			<!--<el-button @click="collapseAndUnfold">收起{{isCollapse}}{{ isCollapse ? '展开' : '收起' }}</el-button>-->
@@ -106,7 +106,7 @@ import {useDict} from "/$/dict";
 import dayjs from "dayjs";
 import {ElMessage, ElMessageBox, UploadProps, UploadUserFile} from "element-plus";
 import type {UploadInstance} from 'element-plus'
-import {uuid} from "/@/cool/utils";
+import {uuid, preProcessData} from "/@/cool/utils";
 import {useBase} from "/$/base";
 import Detail from "/@/modules/signal/views/detail.vue";
 import Comparison from "/@/modules/signal/views/comparison.vue";
@@ -244,7 +244,6 @@ function changeShowLabel() {
 	const needChangeProps = ['remark1', 'remark2', 'remark3', 'remark4', 'remark5', 'remark6', 'remark7']
 	const list: [] = param.get('list').value
 	for (const item of list) {
-		console.log('item===>', item)
 		if (item?.keyName && needChangeProps.includes(item?.keyName)) {
 			showLabelNames.value[item?.keyName] = item.name;
 		}
@@ -596,6 +595,11 @@ const items = ref<ClForm.Item[]>([
 
 	},
 ]);
+
+function queryData(form: any) {
+	let temp = preProcessData(form)
+	refresh({ ...temp, page: 1 })
+}
 
 // function collapseAndUnfold() {
 // 	console.log('collapseAndUnfold', '======')

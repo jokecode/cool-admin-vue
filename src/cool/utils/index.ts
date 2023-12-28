@@ -317,5 +317,15 @@ export function sleep(duration: number) {
 	});
 }
 
+// 删除属性值为空的属性
+export function preProcessData(formData: any) {
+	Object.keys(formData).forEach(item=>{
+		if(formData[item] === "") {
+			formData[item] = undefined
+		}
+	})
+	return formData;
+}
+
 export { storage };
 export * from "./loading";
