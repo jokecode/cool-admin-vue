@@ -50,7 +50,7 @@
 			<template #slot-el-upload="{ scope }">
 				<el-upload
 					ref="oscFileElUploadRef"
-					:key="scope.fileCode"
+					:key="Math.random()"
 					:file-list="fileList"
 					:auto-upload="false"
 					:on-change="handleChange"
@@ -1401,7 +1401,7 @@ const Upsert = useUpsert({
 		}
 	},
 	onOpen(data) {
-		if (['info', 'update'].includes(Upsert.value?.mode || '')) {
+		if (['info', 'update', 'add'].includes(Upsert.value?.mode || '')) {
 			if (data.attachmentId) {
 				fileList.value = [
 					{
