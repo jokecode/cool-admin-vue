@@ -1433,11 +1433,14 @@ function add(fd: any, done: () => void, close: () => void) {
 			// 第一次录入数据时默认初始值选项，第二录入数据时则是用上一次录入的记录；
 			// 例如文件编号初始2310200001，当第一次录入2310090001 第二次点击上传则是在上一次的历史2310090001上修改为2310090002
 			const fileCode = Upsert?.value?.form?.fileCode;
-			let lastNum = fileCode.substring(fileCode.length-1, fileCode.length)
-			if (!isNaN(Number(lastNum))) {
-				Upsert.value?.setForm('fileCode', `${fileCode.substring(0, fileCode.length-1)}${Number(lastNum)+1}`);
+			const nextFileCode = autoAddFileCode(fileCode)
+			if (nextFileCode) {
+				Upsert.value?.setForm('fileCode', nextFileCode);
 			} else {
-				ElMessage.success('文件编号异常，请自行修改！');
+				ElMessage.warning({
+					duration: 5000,
+					message: '文件编号异常，请自行修改！'
+				});
 			}
 		}).catch(() => {
 			done(); // 关闭加载状态
@@ -1451,6 +1454,32 @@ function add(fd: any, done: () => void, close: () => void) {
 		ElMessage.error(err.message);
 		done();
 	})
+}
+
+// 文件编号自增（需考虑2312280001_001、2312280001这两种编号的自增情况）
+function autoAddFileCode(fileCode: String) {
+	if (!fileCode || fileCode.length <= 6) {
+		return false
+	}
+	let result;
+	let splitArr = fileCode.split('');
+	let strIndex = [5]; // 2312280001 文件编号前六位是日期不参与自增，
+	for (let i = 0; i < splitArr.length; i++) {
+		const item = splitArr[i];
+		if (isNaN(Number(item))) {
+			strIndex.push(i)
+		}
+	}
+	let startIndex = strIndex[strIndex.length-1] + 1;
+	// 防止用户在前6位编号中塞入字符串
+	if (startIndex < 5) {
+		return false
+	}
+	let autoAddNum = fileCode.substring(startIndex, fileCode.length)
+	console.log('截取到的自增字符串==>', autoAddNum)
+	result = `${fileCode.substring(0, startIndex)}${String(Number(autoAddNum)+1).padStart(autoAddNum.length, '0')}`
+	console.log('文件编号自增结果==>', result)
+	return result;
 }
 
 function update(fd: any, done: () => void, close: () => void) {
