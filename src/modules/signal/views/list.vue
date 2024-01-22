@@ -37,7 +37,12 @@
 
 		<cl-row>
 			<!-- 数据表格 -->
-			<cl-table ref="Table" height="calc(100vh - 430px)"/>
+			<cl-table ref="Table" height="calc(100vh - 430px)">
+				<template #column-attachmentPath="{ scope }">
+					<span v-if="scope.row.attachmentPath" type="success" style="color: #67c23a;font-weight: bold;">已上传</span>
+					<span v-else type="warning" style="color: #e6a23c;font-weight: bold;">未上传</span>
+				</template>
+			</cl-table>
 		</cl-row>
 
 		<cl-row>
@@ -817,6 +822,11 @@ const Table = useTable({
 				return formatterCellByCode(row, column, val, 'remark7')
 			},
 			// dict: dict.get("Remark7"),
+			minWidth: 120
+		},
+		{
+			label:'信号特征数据',
+			prop: "attachmentPath",
 			minWidth: 120
 		},
 		{
